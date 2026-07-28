@@ -8,6 +8,9 @@
 <body>
 <x-dc>
 <helmet>
+<title>Noesis Machines — Deep AI for the real world</title>
+<meta name="description" content="Deep AI research and engineering for the industries, languages, and realities of South Asia. Industrial visual AI, deep domain AI, Sinhala language AI, and sensor-integrated systems. Colombo, Sri Lanka.">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="_ds/noesis-machines-design-system-518f2ab5-fc4b-40a6-8c58-e4b77d333e52/colors_and_type.css">
 <script src="_ds/noesis-machines-design-system-518f2ab5-fc4b-40a6-8c58-e4b77d333e52/_ds_bundle.js"></script>
 <style>
@@ -65,10 +68,8 @@
   </nav>
 
   <section id="top" style="position: relative; overflow: hidden; height: calc(100svh - 71px); display: flex; flex-direction: column; justify-content: flex-start; padding: clamp(28px, 5svh, 64px) 32px clamp(24px, 4svh, 44px);">
-    <div id="grid" aria-hidden="true" style="position: absolute; left: 0; right: 0; bottom: -1px; height: 40%; pointer-events: none; z-index: 0; display: {{ gridShown }}; background-image: linear-gradient(to right, #D6D1C4 1px, transparent 1px), linear-gradient(to bottom, #D6D1C4 1px, transparent 1px); background-size: 16px 16px; background-position: center bottom; opacity: 0.42; -webkit-mask-image: linear-gradient(to bottom, transparent 4%, rgba(0,0,0,0.28) 40%, rgba(0,0,0,0.7) 68%, #000 92%); mask-image: linear-gradient(to bottom, transparent 4%, rgba(0,0,0,0.28) 40%, rgba(0,0,0,0.7) 68%, #000 92%);"></div>
-    <sc-if value="{{ showSkyline }}" hint-placeholder-val="{{ true }}">
-      <div id="sky" ref="{{ skyRef }}" style="position: absolute; left: 0; right: 0; bottom: -1px; pointer-events: none; z-index: 0;"></div>
-    </sc-if>
+    <div id="grid" aria-hidden="true" style="position: absolute; left: 0; right: 0; bottom: -1px; height: 40%; pointer-events: none; z-index: 0; background-image: linear-gradient(to right, #D6D1C4 1px, transparent 1px), linear-gradient(to bottom, #D6D1C4 1px, transparent 1px); background-size: 16px 16px; background-position: center bottom; opacity: 0.42; -webkit-mask-image: linear-gradient(to bottom, transparent 4%, rgba(0,0,0,0.28) 40%, rgba(0,0,0,0.7) 68%, #000 92%); mask-image: linear-gradient(to bottom, transparent 4%, rgba(0,0,0,0.28) 40%, rgba(0,0,0,0.7) 68%, #000 92%);"></div>
+    <div id="sky" ref="{{ skyRef }}" style="position: absolute; left: 0; right: 0; bottom: -1px; pointer-events: none; z-index: 0;"></div>
     <div aria-hidden="true" style="position: absolute; inset: 0 0 42% 0; pointer-events: none; z-index: 1; background: linear-gradient(100deg, #F1EEE6 0%, rgba(241,238,230,0.96) 38%, rgba(241,238,230,0.72) 56%, rgba(241,238,230,0) 76%); -webkit-mask-image: linear-gradient(to bottom, #000 0 62%, transparent 100%); mask-image: linear-gradient(to bottom, #000 0 62%, transparent 100%);"></div>
     <div id="hero-copy" style="max-width: 1280px; margin: 0 auto; width: 100%; position: relative; z-index: 2; will-change: transform;">
       <div class="hero-cap" style="display: flex; align-items: center; gap: 10px 12px; flex-wrap: wrap; max-width: min(56%, 720px); font-family: 'Geist Mono', monospace; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: #6B6E85; margin-bottom: clamp(20px, 4svh, 36px); animation: riseIn 240ms cubic-bezier(.22,1,.36,1) both;">
@@ -214,7 +215,7 @@
   </footer>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;showSkyline&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Hero&quot;},&quot;showGrid&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Hero&quot;},&quot;cityTone&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Multi-tone&quot;,&quot;Single ink&quot;],&quot;default&quot;:&quot;Multi-tone&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Hero&quot;}}">
+<script type="text/x-dc" data-dc-script>
 class Component extends DCLogic {
   state = { hovered: null, marker: null, markerDark: false, wide: true, activeId: null, railHover: null };
   _trace(key, inset) {
@@ -395,11 +396,6 @@ class Component extends DCLogic {
         g.style.setProperty('--gx', Math.round(760 + (x / 1315) * 2400));
         return { el: g, x, tower: g.id === 'g0-0-7' };
       }).sort((a, b) => a.x - b.x);
-      // Each landmark settles into its own tone — mostly ink, with jade and tea
-      // appearing once each so the sweep reads as depth, not as a rainbow.
-      const tones = [[107, 110, 133], [45, 52, 88], [92, 107, 74], [45, 52, 88], [107, 110, 133],
-                     [201, 168, 106], [45, 52, 88], [92, 107, 74], [45, 52, 88], [107, 110, 133]];
-      this._bands.forEach((b, i) => { b.target = tones[i % tones.length]; });
       svg.setAttribute('class', 'city');
       // The saffron tower rides in its own layer, cloned BEFORE the city gets cropped
       // so it keeps the full 749.7-unit height and the spire stays whole.
@@ -439,12 +435,9 @@ class Component extends DCLogic {
     const city = host && host.querySelector('svg.city');
     if (!city) return;
     city.setAttribute('viewBox', '0 300 1314.9 450');
-    const tones = [[107, 110, 133], [45, 52, 88], [92, 107, 74], [45, 52, 88], [107, 110, 133],
-                   [201, 168, 106], [45, 52, 88], [92, 107, 74], [45, 52, 88], [107, 110, 133]];
     this._bands = [...city.querySelectorAll('g[data-depth="3"]')]
       .map((g) => ({ el: g, x: +(g.dataset.x || 0), tower: g.id === 'g0-0-7' }))
       .sort((a, b) => a.x - b.x);
-    this._bands.forEach((b, i) => { b.target = tones[i % tones.length]; });
     this._fitTower();
     this._paintSky();
   }
@@ -524,7 +517,7 @@ class Component extends DCLogic {
       const lit = Math.max(0, Math.min(1, (p * 1.5 - t * 0.5) / 0.55));
       // Every landmark starts on the same quiet grey; scrolling walks each one
       // toward its own tone, darkening as it goes.
-      const c = (this.props.cityTone === 'Single ink') ? [45, 52, 88] : b.target;
+      const c = [45, 52, 88];
       const mix = (a, z) => Math.round(a + (z - a) * lit);
       b.el.style.color = 'rgb(' + mix(146, c[0]) + ',' + mix(146, c[1]) + ',' + mix(153, c[2]) + ')';
     });
@@ -613,8 +606,7 @@ class Component extends DCLogic {
       document.querySelectorAll('[data-reveal]').forEach((el) => { if (!el._shown) show(el); });
     }, 5000);
   }
-  componentDidUpdate(prev) {
-    if (prev.cityTone !== this.props.cityTone) this._paintSky();
+  componentDidUpdate() {
     this._fillTeam();
   }
   componentWillUnmount() {
@@ -631,8 +623,6 @@ class Component extends DCLogic {
   }
   renderVals() {
     return {
-      showSkyline: this.props.showSkyline ?? true,
-      gridShown: (this.props.showGrid ?? true) ? 'block' : 'none',
       skyRef: this._skyRef,
       railStyle: {
         position: 'fixed',
