@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/noesis-machines-design-system-518f2ab5-fc4b-40a6-8c58-e4b77d333e52/colors_and_type.css">
+<script src="_ds/noesis-machines-design-system-518f2ab5-fc4b-40a6-8c58-e4b77d333e52/_ds_bundle.js"></script>
+<style>
+  body { background: #F1EEE6; }
+  a { color: #161B33; }
+  a:hover { color: #000000; }
+  @keyframes skydraw { to { stroke-dashoffset: 0; } }
+  @keyframes horizonDraw { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+  @keyframes beaconBreathe { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+  .know-dot { display: inline-block; animation: beaconBreathe 4s ease-in-out 1.6s infinite; }
+  @media (prefers-reduced-motion: reduce) { .know-dot { animation: none; } }
+  #sky svg { display: block; }
+  #sky svg.city { width: 100%; height: auto; }
+  #sky svg.city { -webkit-mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.55) 7%, #000 18%); mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.55) 7%, #000 18%); }
+  #sky svg.tower { position: absolute; left: 0; bottom: 0; width: 100%; height: auto; }
+  @media (max-width: 900px) { #sky { width: 168%; left: -34% !important; right: auto !important; } }
+  #sky path { fill: none; stroke: currentColor; stroke-width: 0.55; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1; stroke-dashoffset: 1; }
+  #sky g[data-depth="3"] { color: #D6D1C4; transition: color 900ms cubic-bezier(.22,1,.36,1); }
+  #sky.run path { animation: skydraw 2200ms cubic-bezier(.22,1,.36,1) calc(var(--gx, 0) * 1ms) forwards; }
+  @media (prefers-reduced-motion: reduce) { #sky path { stroke-dashoffset: 0; } #sky.run path { animation: none; } }
+  @keyframes riseIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  html { scroll-behavior: smooth; }
+  @media (max-width: 900px) { .hdr-meta { display: none; } #top { height: auto !important; min-height: calc(100svh - 71px); } .hero-cap { max-width: 100% !important; } }
+</style>
+</helmet>
+
+<div style="background: #F1EEE6; color: #161B33; font-family: 'Geist', ui-sans-serif, system-ui, sans-serif; min-height: 100vh;">
+
+  <header id="hdr" style="position: sticky; top: 0; z-index: 50; background: rgba(241,238,230,0.82); backdrop-filter: blur(12px); border-bottom: 1px solid transparent; transition: border-color 260ms ease-out;">
+    <div style="max-width: 1280px; margin: 0 auto; padding: 18px 32px; display: flex; align-items: center; gap: 40px;">
+      <a href="#top" style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: #161B33;">
+        <img src="assets/logo-mark.svg" width="30" height="30" alt="">
+        <span style="display: flex; flex-direction: column; line-height: 1;">
+          <span style="font-family: 'Instrument Serif', Georgia, serif; font-style: italic; font-size: 22px; letter-spacing: -0.5px;">Noesis</span>
+          <span style="font-size: 8.5px; letter-spacing: 2.5px; font-weight: 500; margin-top: 3px;">M A C H I N E S</span>
+        </span>
+      </a>
+      <nav style="display: flex; gap: 28px; flex: 1;">
+        <a href="#what" style="{{ navWhat }}" style-hover="color: #161B33;">What we do</a>
+        <a href="#how" style="{{ navHow }}" style-hover="color: #161B33;">How we work</a>
+        <a href="#team" style="{{ navTeam }}" style-hover="color: #161B33;">Team</a>
+      </nav>
+      <div style="font-family: 'Geist Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #ADA79B; white-space: nowrap; transition: opacity 320ms ease-out;" class="hdr-meta">Colombo, Sri Lanka · 6.9271° N, 79.8612° E</div>
+    </div>
+  </header>
+
+  <nav style="{{ railStyle }}" aria-label="Sections">
+    <sc-for list="{{ rail }}" as="item" hint-placeholder-count="4">
+      <a href="{{ item.href }}" style="{{ item.wrap }}" onMouseEnter="{{ item.on }}" onMouseLeave="{{ item.off }}">
+        <span style="{{ item.dot }}"></span>
+        <span style="{{ item.rule }}"></span>
+        <span style="{{ item.label }}">{{ item.text }}</span>
+      </a>
+    </sc-for>
+  </nav>
+
+  <section id="top" style="position: relative; overflow: hidden; height: calc(100svh - 71px); display: flex; flex-direction: column; justify-content: flex-start; padding: clamp(28px, 5svh, 64px) 32px clamp(24px, 4svh, 44px);">
+    <div id="grid" aria-hidden="true" style="position: absolute; left: 0; right: 0; bottom: -1px; height: 40%; pointer-events: none; z-index: 0; display: {{ gridShown }}; background-image: linear-gradient(to right, #D6D1C4 1px, transparent 1px), linear-gradient(to bottom, #D6D1C4 1px, transparent 1px); background-size: 16px 16px; background-position: center bottom; opacity: 0.42; -webkit-mask-image: linear-gradient(to bottom, transparent 4%, rgba(0,0,0,0.28) 40%, rgba(0,0,0,0.7) 68%, #000 92%); mask-image: linear-gradient(to bottom, transparent 4%, rgba(0,0,0,0.28) 40%, rgba(0,0,0,0.7) 68%, #000 92%);"></div>
+    <sc-if value="{{ showSkyline }}" hint-placeholder-val="{{ true }}">
+      <div id="sky" ref="{{ skyRef }}" style="position: absolute; left: 0; right: 0; bottom: -1px; pointer-events: none; z-index: 0;"></div>
+    </sc-if>
+    <div aria-hidden="true" style="position: absolute; inset: 0 0 42% 0; pointer-events: none; z-index: 1; background: linear-gradient(100deg, #F1EEE6 0%, rgba(241,238,230,0.96) 38%, rgba(241,238,230,0.72) 56%, rgba(241,238,230,0) 76%); -webkit-mask-image: linear-gradient(to bottom, #000 0 62%, transparent 100%); mask-image: linear-gradient(to bottom, #000 0 62%, transparent 100%);"></div>
+    <div id="hero-copy" style="max-width: 1280px; margin: 0 auto; width: 100%; position: relative; z-index: 2; will-change: transform;">
+      <div class="hero-cap" style="display: flex; align-items: center; gap: 10px 12px; flex-wrap: wrap; max-width: min(56%, 720px); font-family: 'Geist Mono', monospace; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: #6B6E85; margin-bottom: clamp(20px, 4svh, 36px); animation: riseIn 240ms cubic-bezier(.22,1,.36,1) both;">
+        <span style="width: 32px; height: 1px; background: #6B6E85;"></span>
+        Deep AI · Research · Bespoke AI solutions
+      </div>
+
+      <h1 style="font-family: 'Instrument Serif', Georgia, serif; font-weight: 400; font-size: clamp(40px, min(8vw, 13.5svh), 124px); line-height: 1.0; letter-spacing: -0.025em; margin: 0; max-width: 15ch;">
+        <span style="display: inline-block; animation: riseIn 420ms cubic-bezier(.22,1,.36,1) 80ms both;">Machines</span> <span style="display: inline-block; animation: riseIn 420ms cubic-bezier(.22,1,.36,1) 200ms both;">that</span> <em style="display: inline-block; color: #E5A823; font-style: italic; animation: riseIn 560ms cubic-bezier(.22,1,.36,1) 520ms both;">know<span class="know-dot">.</span></em>
+      </h1>
+
+      <div class="hero-cap" style="display: flex; flex-direction: column; align-items: flex-start; gap: clamp(18px, 3svh, 30px); max-width: min(52%, 620px); margin-top: clamp(20px, 4.5svh, 56px); animation: riseIn 360ms cubic-bezier(.22,1,.36,1) 120ms both;">
+        <p data-hero-copy="" style="font-size: clamp(16px, 1.5svh + 8px, 20px); line-height: 1.5; color: #2D3458; max-width: 54ch; margin: 0; text-wrap: pretty;">
+          You know your industry. We know AI. Bring us the hard problems. We build deep AI for the industries, languages, and realities of the region. Not API wrappers, not repackaged generic models.
+        </p>
+        <div style="display: flex; gap: 14px; align-items: center; flex-wrap: wrap;">
+          <a href="#contact" style="font-size: 14px; font-weight: 500; padding: 12px 22px; background: #161B33; color: #F1EEE6; border-radius: 4px; text-decoration: none; transition: background 180ms ease-out;" style-hover="background: #000000;" style-active="transform: translateY(1px);">Talk to us →</a>
+          <a href="#what" style="font-size: 14px; font-weight: 500; padding: 12px 22px; color: #161B33; background: #F1EEE6; border: 1px solid #161B33; border-radius: 4px; text-decoration: none; white-space: nowrap;" style-hover="background: #E4DFD2;">What we do</a>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <section id="what" style="padding: 112px 32px;">
+    <div style="max-width: 1280px; margin: 0 auto;">
+      <div style="font-family: 'Geist Mono', monospace; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: #6B6E85; margin-bottom: 24px;">What we do</div>
+      <div data-reveal="0" style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 64px; align-items: start;">
+        <h2 style="font-family: 'Instrument Serif', Georgia, serif; font-weight: 400; font-size: clamp(40px, 4.4vw, 72px); line-height: 1.05; letter-spacing: -0.02em; margin: 0; max-width: 20ch;">
+          We solve problems that are <em style="color: #5C6B4A;">too hard for generic tools.</em>
+        </h2>
+        <div style="display: flex; flex-direction: column; gap: 20px; padding-top: 8px;">
+          <p style="font-size: 17px; line-height: 1.65; color: #2D3458; margin: 0; max-width: 60ch; text-wrap: pretty;">
+            We are pragmatic before we are ambitious. Where a proven model or existing API solves your problem well, we use it. The fastest, most reliable path to value is usually the right one. Our specialty begins where those tools reach their limits: problems that demand bespoke systems, original research, and machine learning engineered specifically for your domain.
+          </p>
+          <p style="font-size: 17px; line-height: 1.65; color: #2D3458; margin: 0; max-width: 60ch; text-wrap: pretty;">
+            You bring an intimate understanding of your business; we bring rigorous machine learning and the engineering discipline to put it into production. The result is AI that is precise, explainable, and built for the realities of how you operate.
+          </p>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 72px; border: 1px solid #D6D1C4; border-radius: 8px; overflow: hidden; background: #F8F5EC;">
+        <div data-reveal="0" onMouseEnter="{{ onA }}" onMouseLeave="{{ offCard }}" style="position: relative; padding: 40px; border-right: 1px solid #D6D1C4; border-bottom: 1px solid #D6D1C4; transition: background 180ms ease-out;" style-hover="background: #E4DFD2;">
+          <div aria-hidden="true" style="{{ trA }}"></div>
+          <div style="font-family: 'Geist Mono', monospace; font-size: 12px; letter-spacing: 0.08em; color: #E5A823; margin-bottom: 28px;">01</div>
+          <h3 style="font-family: 'Instrument Serif', Georgia, serif; font-weight: 400; font-size: 32px; line-height: 1.1; letter-spacing: -0.015em; margin: 0 0 14px;">Industrial Visual AI</h3>
+          <p style="font-size: 15px; line-height: 1.6; color: #2D3458; margin: 0; max-width: 42ch; text-wrap: pretty;">Machine vision for the factory floor: automated inspection, defect detection, and quality grading on live production lines. Engineered to run on-premise and at the edge, keeping your data and operations entirely under your control.</p>
+          <div style="{{ exA }}">Example: defect detection on a live apparel line</div>
+        </div>
+        <div data-reveal="80" onMouseEnter="{{ onB }}" onMouseLeave="{{ offCard }}" style="position: relative; padding: 40px; border-bottom: 1px solid #D6D1C4; transition: background 180ms ease-out;" style-hover="background: #E4DFD2;">
+          <div aria-hidden="true" style="{{ trB }}"></div>
+          <div style="font-family: 'Geist Mono', monospace; font-size: 12px; letter-spacing: 0.08em; color: #E5A823; margin-bottom: 28px;">02</div>
+          <h3 style="font-family: 'Instrument Serif', Georgia, serif; font-weight: 400; font-size: 32px; line-height: 1.1; letter-spacing: -0.015em; margin: 0 0 14px;">Deep Domain AI</h3>
+          <p style="font-size: 15px; line-height: 1.6; color: #2D3458; margin: 0; max-width: 42ch; text-wrap: pretty;">Models built from the ground up on your own data, however complex or imperfect. From predictive analytics and process optimization to anomaly detection, every system is designed alongside your domain experts to capture knowledge no generic model can.</p>
+          <div style="{{ exB }}">Example: yield forecasting from plantation records</div>
+        </div>
+        <div data-reveal="160" onMouseEnter="{{ onC }}" onMouseLeave="{{ offCard }}" style="position: relative; padding: 40px; border-right: 1px solid #D6D1C4; transition: background 180ms ease-out;" style-hover="background: #E4DFD2;">
+          <div aria-hidden="true" style="{{ trC }}"></div>
+          <div style="font-family: 'Geist Mono', monospace; font-size: 12px; letter-spacing: 0.08em; color: #E5A823; margin-bottom: 28px;">03</div>
+          <h3 style="font-family: 'Instrument Serif', Georgia, serif; font-weight: 400; font-size: 32px; line-height: 1.1; letter-spacing: -0.015em; margin: 0 0 14px;">Language AI for Sinhala &amp; South Asian Languages</h3>
+          <p style="font-size: 15px; line-height: 1.6; color: #2D3458; margin: 0; max-width: 42ch; text-wrap: pretty;">Natural language technology built for the region's languages and context: OCR, speech-to-text, translation, document understanding, and conversational systems that operate fluently in Sinhala and beyond.</p>
+          <div style="{{ exC }}">Example: Sinhala document OCR with searchable output</div>
+        </div>
+        <div data-reveal="240" onMouseEnter="{{ onD }}" onMouseLeave="{{ offCard }}" style="position: relative; padding: 40px; transition: background 180ms ease-out;" style-hover="background: #E4DFD2;">
+          <div aria-hidden="true" style="{{ trD }}"></div>
+          <div style="font-family: 'Geist Mono', monospace; font-size: 12px; letter-spacing: 0.08em; color: #E5A823; margin-bottom: 28px;">04</div>
+          <h3 style="font-family: 'Instrument Serif', Georgia, serif; font-weight: 400; font-size: 32px; line-height: 1.1; letter-spacing: -0.015em; margin: 0 0 14px;">IoT &amp; Sensor-Integrated AI</h3>
+          <p style="font-size: 15px; line-height: 1.6; color: #2D3458; margin: 0; max-width: 42ch; text-wrap: pretty;">Intelligence built from live sensor data: real-time monitoring, sensor fusion, and predictive maintenance, deployed reliably on edge and resource-constrained hardware.</p>
+          <div style="{{ exD }}">Example: predictive maintenance from vibration sensors</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="how" style="position: relative; padding: 112px 32px; background: #F8F5EC;">
+    <div data-rule="" aria-hidden="true" style="position: absolute; top: 0; left: 0; right: 0; height: 1px; background: #D6D1C4; transform: scaleX(0); transform-origin: left center; transition: transform 640ms cubic-bezier(.22,1,.36,1);"></div>
+    <div style="max-width: 1280px; margin: 0 auto;">
+      <div style="font-family: 'Geist Mono', monospace; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: #6B6E85; margin-bottom: 24px;">How we work</div>
+      <h2 data-reveal="0" style="font-family: 'Instrument Serif', Georgia, serif; font-style: italic; font-weight: 400; font-size: clamp(36px, 3.6vw, 56px); line-height: 1.1; letter-spacing: -0.02em; margin: 0 0 72px; max-width: 24ch;">
+        Every problem is different. Our approach is not.
+      </h2>
+      <div style="display: flex; flex-direction: column;">
+        <sc-for list="{{ steps }}" as="step" hint-placeholder-count="5">
+          <div data-reveal="0" style="position: relative; display: grid; grid-template-columns: 64px minmax(0, 320px) minmax(0, 1fr); gap: 32px; padding: 32px 0; align-items: start;">
+            <div data-rule="" aria-hidden="true" style="position: absolute; top: 0; left: 0; right: 0; height: 1px; background: #D6D1C4; transform: scaleX(0); transform-origin: left center; transition: transform 640ms cubic-bezier(.22,1,.36,1);"></div>
+            <div style="font-family: 'Geist Mono', monospace; font-size: 12px; letter-spacing: 0.08em; color: #E5A823; padding-top: 6px;" data-tick="{{ step.n }}">{{ step.n }}</div>
+            <h4 style="font-size: 20px; font-weight: 500; letter-spacing: -0.01em; margin: 0; color: #161B33;">{{ step.title }}</h4>
+            <p style="font-size: 16px; line-height: 1.65; color: #2D3458; margin: 0; max-width: 66ch; text-wrap: pretty;">{{ step.body }}</p>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </section>
+
+  <section id="team" style="position: relative; padding: 112px 32px;">
+    <div data-rule="" aria-hidden="true" style="position: absolute; top: 0; left: 0; right: 0; height: 1px; background: #D6D1C4; transform: scaleX(0); transform-origin: left center; transition: transform 640ms cubic-bezier(.22,1,.36,1);"></div>
+    <div style="max-width: 1280px; margin: 0 auto;">
+      <div style="font-family: 'Geist Mono', monospace; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: #6B6E85; margin-bottom: 24px;">The team</div>
+      <h2 data-reveal="0" style="font-family: 'Instrument Serif', Georgia, serif; font-weight: 400; font-size: clamp(36px, 3.6vw, 56px); line-height: 1.1; letter-spacing: -0.02em; margin: 0 0 48px; max-width: 30ch;">
+        Founded by two applied scientists with two decades in machine learning.
+      </h2>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px;">
+        <div data-reveal="0" data-nosnippet="" onMouseEnter="{{ onT1 }}" onMouseLeave="{{ offCard }}" style="{{ cardT1 }}">
+          <div aria-hidden="true" style="{{ trT1 }}"></div>
+          <h4 ref="{{ name1Ref }}" style="font-size: 20px; font-weight: 500; margin: 0 0 4px; min-height: 1em;"></h4>
+          <div style="font-family: 'Geist Mono', monospace; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: #6B6E85; margin-bottom: 18px;">Co-founder &amp; Scientist</div>
+          <p ref="{{ bio1Ref }}" style="font-size: 15px; line-height: 1.6; color: #2D3458; margin: 0; max-width: 46ch; min-height: 4.8em;"></p>
+        </div>
+        <div data-reveal="120" data-nosnippet="" onMouseEnter="{{ onT2 }}" onMouseLeave="{{ offCard }}" style="{{ cardT2 }}">
+          <div aria-hidden="true" style="{{ trT2 }}"></div>
+          <h4 ref="{{ name2Ref }}" style="font-size: 20px; font-weight: 500; margin: 0 0 4px; min-height: 1em;"></h4>
+          <div style="font-family: 'Geist Mono', monospace; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: #6B6E85; margin-bottom: 18px;">Co-founder &amp; Scientist</div>
+          <p ref="{{ bio2Ref }}" style="font-size: 15px; line-height: 1.6; color: #2D3458; margin: 0; max-width: 46ch; min-height: 4.8em;"></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="contact" style="position: relative; padding: 112px 32px; background: #161B33; color: #F1EEE6;">
+    <div data-rule="" aria-hidden="true" style="position: absolute; top: 0; left: 0; right: 0; height: 1px; background: #D6D1C4; transform: scaleX(0); transform-origin: left center; transition: transform 640ms cubic-bezier(.22,1,.36,1);"></div>
+    <div style="max-width: 1280px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 64px; align-items: end;">
+      <div>
+        <div style="font-family: 'Geist Mono', monospace; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: #8C8881; margin-bottom: 28px;">Contact</div>
+        <h2 data-reveal="0" style="font-family: 'Instrument Serif', Georgia, serif; font-weight: 400; font-size: clamp(40px, 4.4vw, 72px); line-height: 1.05; letter-spacing: -0.02em; margin: 0; color: #F1EEE6; max-width: 22ch;">
+          Bring us the <em style="color: #E5A823;">hard problems.</em>
+        </h2>
+      </div>
+      <div data-reveal="120" style="display: flex; flex-direction: column; gap: 14px; align-items: flex-start;">
+        <a href="mailto:hello@noesismachines.ai" style="font-family: 'Geist Mono', monospace; font-size: 18px; color: #F1EEE6; text-decoration: none; border-bottom: 1px solid #E5A823; padding-bottom: 4px;" style-hover="color: #E5A823;">hello@noesismachines.ai</a>
+        <span style="font-size: 14px; color: #C9C5BB;">Colombo, Sri Lanka</span>
+      </div>
+    </div>
+  </section>
+
+  <footer style="background: #161B33; color: #F1EEE6; padding: 0 32px 40px;">
+    <div style="max-width: 1280px; margin: 0 auto; padding-top: 40px; border-top: 1px solid #2F2F36; display: flex; justify-content: space-between; align-items: center; gap: 32px; flex-wrap: wrap;">
+      <img src="assets/logo-lockup-bone.svg" height="40" alt="Noesis Machines">
+      <div style="display: flex; gap: 48px; font-family: 'Geist Mono', monospace; font-size: 11px; letter-spacing: 0.06em; color: #8C8881; text-transform: uppercase;">
+        <span>© 2026 Noesis Machines</span>
+        <span>Machines that know.</span>
+      </div>
+    </div>
+  </footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;showSkyline&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Hero&quot;},&quot;showGrid&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Hero&quot;},&quot;cityTone&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Multi-tone&quot;,&quot;Single ink&quot;],&quot;default&quot;:&quot;Multi-tone&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Hero&quot;}}">
+class Component extends DCLogic {
+  state = { hovered: null, marker: null, markerDark: false, wide: true, activeId: null, railHover: null };
+  _trace(key, inset) {
+    // The border darkens by being drawn, left to right, rather than switching on.
+    const on = this.state.hovered === key;
+    return {
+      position: 'absolute',
+      // Standalone cards are rounded, so the line starts and ends inside the corner arc.
+      top: inset ? -1 : 0,
+      left: inset ? 8 : 0,
+      right: inset ? 8 : 0,
+      height: '1px',
+      background: '#6B6E85',
+      transformOrigin: 'left center',
+      transform: on ? 'scaleX(1)' : 'scaleX(0)',
+      transition: 'transform 320ms cubic-bezier(.22,1,.36,1)',
+      pointerEvents: 'none'
+    };
+  }
+  // Founder details are assembled at runtime and never appear as literal strings in
+  // the served markup, so a crawler that does not execute JS has nothing to index.
+  _people() {
+    const d = (a) => a.map((n) => String.fromCharCode(n)).join('');
+    return [
+      { n: d([83,104,97,122,97,110,32,74,97,98,98,97,114]),
+        b: d([78,76,80,44,32,103,101,110,101,114,97,116,105,118,101,32,65,73,44,32,115,101,97,114,99,104,44,32,97,110,100,32,114,101,99,111,109,109,101,110,100,97,116,105,111,110,32,115,121,115,116,101,109,115,46,32,70,111,114,109,101,114,32,76,101,97,100,32,77,76,32,83,99,105,101,110,116,105,115,116,32,97,116,32,116,104,101,32,65,108,98,101,114,116,97,32,77,97,99,104,105,110,101,32,73,110,116,101,108,108,105,103,101,110,99,101,32,73,110,115,116,105,116,117,116,101,59,32,53,48,48,43,32,99,105,116,97,116,105,111,110,115,46,32,77,83,99,44,32,85,110,105,118,101,114,115,105,116,121,32,111,102,32,65,108,98,101,114,116,97,46]) },
+      { n: d([65,121,97,110,116,104,97,32,82,97,110,100,105,107,97]),
+        b: d([67,111,109,112,117,116,101,114,32,118,105,115,105,111,110,44,32,79,67,82,44,32,97,110,100,32,108,97,114,103,101,32,108,97,110,103,117,97,103,101,32,109,111,100,101,108,115,46,32,80,97,116,101,110,116,45,104,111,108,100,101,114,44,32,73,67,68,65,82,45,112,117,98,108,105,115,104,101,100,44,32,101,120,45,65,87,83,32,97,110,100,32,76,111,110,100,111,110,32,83,116,111,99,107,32,69,120,99,104,97,110,103,101,32,71,114,111,117,112,46,32,77,83,99,44,32,85,110,105,118,101,114,115,105,116,121,32,111,102,32,65,108,98,101,114,116,97,46]) }
+    ];
+  }
+  _fillTeam() {
+    const p = this._people();
+    if (this._name1) this._name1.textContent = p[0].n;
+    if (this._bio1) this._bio1.textContent = p[0].b;
+    if (this._name2) this._name2.textContent = p[1].n;
+    if (this._bio2) this._bio2.textContent = p[1].b;
+  }
+  _teamCard(key) {
+    const on = this.state.hovered === key;
+    return {
+      position: 'relative',
+      border: '1px solid ' + (on ? '#6B6E85' : '#D6D1C4'),
+      borderRadius: '8px',
+      background: '#F8F5EC',
+      padding: '32px',
+      transition: 'border-color 320ms cubic-bezier(.22,1,.36,1)'
+    };
+  }
+  _ex(key) {
+    const on = this.state.hovered === key;
+    return {
+      marginTop: on ? 16 : 0,
+      maxHeight: on ? 60 : 0,
+      opacity: on ? 1 : 0,
+      overflow: 'hidden',
+      transform: on ? 'none' : 'translateY(8px)',
+      transition: 'opacity 180ms ease-out, transform 180ms ease-out, max-height 220ms ease-out, margin-top 180ms ease-out',
+      fontFamily: "'Geist Mono', monospace",
+      fontSize: 11.5,
+      lineHeight: 1.5,
+      letterSpacing: '0.06em',
+      color: '#5C6B4A'
+    };
+  }
+  _syncMarker() {
+    const marks = [
+      { id: 'what', label: '01 · What we do' },
+      { id: 'how', label: '02 · How we work' },
+      { id: 'team', label: '03 · The team' },
+      { id: 'contact', label: '04 · Contact' }
+    ];
+    const probe = (window.innerHeight || 800) * 0.35;
+    let active = null, dark = false, activeId = null;
+    marks.forEach((m) => {
+      const el = document.getElementById(m.id);
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      if (r.top <= probe && r.bottom > probe) { active = m.label; activeId = m.id; }
+    });
+    const mid = (window.innerHeight || 800) / 2;
+    document.querySelectorAll('[data-ink], #contact').forEach((el) => {
+      const r = el.getBoundingClientRect();
+      if (r.top <= mid && r.bottom > mid) dark = true;
+    });
+    const wide = window.innerWidth >= 1460;
+    if (active !== this.state.marker || dark !== this.state.markerDark || wide !== this.state.wide || activeId !== this.state.activeId) {
+      this.setState({ marker: active, markerDark: dark, wide, activeId });
+    }
+  }
+
+  _rail() {
+    const marks = [
+      { id: 'what', text: '01 · What we do' },
+      { id: 'how', text: '02 · How we work' },
+      { id: 'team', text: '03 · The team' },
+      { id: 'contact', text: '04 · Contact' }
+    ];
+    const dark = this.state.markerDark;
+    const base = dark ? '#4A4E63' : '#C2BEB2';
+    const ink = dark ? '#C9C5BB' : '#6B6E85';
+    return marks.map((m) => {
+      const hovered = this.state.railHover === m.id;
+      const active = this.state.activeId === m.id;
+      const open = hovered || (active && !this.state.railHover);
+      return {
+        href: '#' + m.id,
+        text: m.text,
+        on: () => this.setState({ railHover: m.id }),
+        off: () => this.setState({ railHover: null }),
+        wrap: {
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          textDecoration: 'none',
+          color: open ? (dark ? '#E5A823' : '#161B33') : ink,
+          cursor: 'pointer',
+          transition: 'color 200ms ease-out'
+        },
+        dot: {
+          width: active ? 7 : 5,
+          height: active ? 7 : 5,
+          borderRadius: '50%',
+          flex: '0 0 auto',
+          background: active ? '#E5A823' : (hovered ? ink : base),
+          transition: 'background 200ms ease-out, width 240ms cubic-bezier(.22,1,.36,1), height 240ms cubic-bezier(.22,1,.36,1)'
+        },
+        rule: {
+          width: 1,
+          height: open ? 22 : 0,
+          marginTop: open ? 10 : 0,
+          background: 'currentColor',
+          opacity: open ? 0.4 : 0,
+          transition: 'height 380ms cubic-bezier(.22,1,.36,1), margin-top 380ms cubic-bezier(.22,1,.36,1), opacity 260ms ease-out'
+        },
+        label: {
+          writingMode: 'vertical-rl',
+          fontFamily: "'Geist Mono', monospace",
+          fontSize: 10,
+          letterSpacing: '0.18em',
+          textTransform: 'uppercase',
+          whiteSpace: 'nowrap',
+          overflow: 'hidden',
+          maxHeight: open ? 160 : 0,
+          opacity: open ? 1 : 0,
+          marginTop: open ? 10 : 0,
+          transition: 'max-height 380ms cubic-bezier(.22,1,.36,1), opacity 260ms ease-out, margin-top 380ms cubic-bezier(.22,1,.36,1)'
+        }
+      };
+    });
+  }
+
+  _navLink(id) {
+    const on = this.state.activeId === id;
+    return {
+      fontSize: 14,
+      color: on ? '#161B33' : '#2D3458',
+      textDecoration: 'none',
+      paddingBottom: 3,
+      borderBottom: '1px solid ' + (on ? '#E5A823' : 'transparent'),
+      transition: 'color 180ms ease-out, border-color 180ms ease-out'
+    };
+  }
+
+  _skyRef = (el) => { if (el) { this._sky = el; this._loadSky(); } };
+  _loadSky() {
+    const host = this._sky;
+    if (!host) return;
+    if (host._loaded) { this._adoptSky(); return; }
+    host._loaded = true;
+    fetch('assets/colombo-skyline.svg').then((r) => r.text()).then((txt) => {
+      host.innerHTML = txt;
+      const svg = host.querySelector('svg');
+      if (!svg) return;
+      svg.removeAttribute('width');
+      svg.setAttribute('preserveAspectRatio', 'xMidYMax meet');
+      this._bands = [...svg.querySelectorAll('g[data-depth="3"]')].map((g) => {
+        const x = +(g.dataset.x || 0);
+        g.style.setProperty('--gx', Math.round(760 + (x / 1315) * 2400));
+        return { el: g, x, tower: g.id === 'g0-0-7' };
+      }).sort((a, b) => a.x - b.x);
+      // Each landmark settles into its own tone — mostly ink, with jade and tea
+      // appearing once each so the sweep reads as depth, not as a rainbow.
+      const tones = [[107, 110, 133], [45, 52, 88], [92, 107, 74], [45, 52, 88], [107, 110, 133],
+                     [201, 168, 106], [45, 52, 88], [92, 107, 74], [45, 52, 88], [107, 110, 133]];
+      this._bands.forEach((b, i) => { b.target = tones[i % tones.length]; });
+      svg.setAttribute('class', 'city');
+      // The saffron tower rides in its own layer, cloned BEFORE the city gets cropped
+      // so it keeps the full 749.7-unit height and the spire stays whole.
+      const tower = this._bands.find((b) => b.tower);
+      if (tower) {
+        const clone = svg.cloneNode(true);
+        clone.setAttribute('class', 'tower');
+        clone.querySelectorAll('g[data-depth="3"]').forEach((g) => { if (g.id !== tower.el.id) g.remove(); });
+        const kept = clone.querySelector('g[data-depth="3"]');
+        if (kept) {
+          kept.style.color = '#E5A823';
+          kept.querySelectorAll('path').forEach((p) => { p.style.strokeWidth = '0.85'; });
+        }
+        host.appendChild(clone);
+        tower.el.style.display = 'none';
+      }
+      // Crop the empty sky out of the city so it bleeds edge to edge at full width.
+      svg.setAttribute('viewBox', '0 300 1314.9 450');
+      this._fitTower();
+      this._fit = () => { this._fitTower(); this._paintSky(); };
+      window.addEventListener('resize', this._fit);
+      // The hero sizes itself from svh + clamp()s and web fonts, so the first fit can
+      // land before layout settles. Watch the section instead of trusting one pass.
+      const hero = host.parentElement;
+      if (hero && window.ResizeObserver) {
+        this._ro = new ResizeObserver(() => this._fitTower());
+        this._ro.observe(hero);
+      }
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => this._fitTower());
+      this._paintSky();
+    }).catch(() => {});
+  }
+  _adoptSky() {
+    // A remount reuses the already-populated host: pick the groups back up so the
+    // scroll wash keeps running against the drawing that is already on screen.
+    const host = this._sky;
+    const city = host && host.querySelector('svg.city');
+    if (!city) return;
+    city.setAttribute('viewBox', '0 300 1314.9 450');
+    const tones = [[107, 110, 133], [45, 52, 88], [92, 107, 74], [45, 52, 88], [107, 110, 133],
+                   [201, 168, 106], [45, 52, 88], [92, 107, 74], [45, 52, 88], [107, 110, 133]];
+    this._bands = [...city.querySelectorAll('g[data-depth="3"]')]
+      .map((g) => ({ el: g, x: +(g.dataset.x || 0), tower: g.id === 'g0-0-7' }))
+      .sort((a, b) => a.x - b.x);
+    this._bands.forEach((b, i) => { b.target = tones[i % tones.length]; });
+    this._fitTower();
+    this._paintSky();
+  }
+  _fitGrid() {
+    // The graph paper starts exactly where the drawing does, so the two read as one plate.
+    const city = this._sky && this._sky.querySelector('svg.city');
+    const grid = document.getElementById('grid');
+    if (!city || !grid) return;
+    // The city's viewBox keeps ~33 of its 450 units as empty sky below the building
+    // feet, so lift the grid by that much to sit its bottom edge on the drawn horizon.
+    const h = city.getBoundingClientRect().height;
+    grid.style.height = (h * (417 / 450)).toFixed(1) + 'px';
+    grid.style.bottom = (h * (33 / 450) - 1).toFixed(1) + 'px';
+  }
+  _fitTower() {
+    this._fitGrid();
+    const host = this._sky;
+    const tower = host && host.querySelector('svg.tower');
+    if (!tower) return;
+    const W = host.clientWidth;
+    const H = host.parentElement ? host.parentElement.clientHeight : 0;
+    if (!W || !H) return;
+    const s = W / 1314.9;
+    if (749.7 * s <= H) {
+      tower.style.width = '100%';
+      tower.style.height = 'auto';
+      tower.style.left = '0px';
+      return;
+    }
+    // Hero is shorter than the full drawing: give the tower a box whose aspect matches
+    // its viewBox exactly (so `meet` letterboxes by zero), then slide it back over its
+    // own footprint in the city. The spire keeps its point instead of being cut off.
+    const s2 = H / 749.7;
+    tower.style.height = H + 'px';
+    tower.style.width = (1314.9 * s2) + 'px';
+    tower.style.left = (952 * s - 952 * s2) + 'px';
+  }
+  _settleHeader() {
+    const h = document.getElementById('hdr');
+    // At rest the hero sits on unbroken paper; the rule appears once the page moves.
+    if (h) h.style.borderBottomColor = (window.scrollY || 0) > 8 ? '#D6D1C4' : 'transparent';
+  }
+  _fadeMeta() {
+    const meta = document.querySelector('.hdr-meta');
+    if (!meta) return;
+    // The coordinates belong to the drawing: they leave with it.
+    const y = window.scrollY || 0;
+    meta.style.opacity = String(Math.max(0, Math.min(1, 1 - y / 160)));
+  }
+  _paintSky() {
+    const host = this._sky;
+    const vh = window.innerHeight || 800;
+    const y = window.scrollY || 0;
+    // Parallax lives entirely between the copy and the drawing: the copy lifts away
+    // while the city holds still, so nothing in the artwork can drift off its base.
+    const copy = document.getElementById('hero-copy');
+    if (copy) {
+      copy.style.transform = 'translate3d(0,' + (-y * 0.28).toFixed(1) + 'px,0)';
+      copy.style.opacity = String(Math.max(0, 1 - y / (vh * 0.55)));
+    }
+    if (!host || !this._bands || !this._bands.length) return;
+    const r = host.getBoundingClientRect();
+    if (r.top < vh * 0.98 && r.bottom > 0) host.classList.add('run');
+    // The skyline is in the first view, so key the wash off page scroll:
+    // the city starts quiet and settles into full ink as the hero leaves.
+    const p = Math.max(0, Math.min(1, (window.scrollY || 0) / (vh * 0.85)));
+    const city = host.querySelector('svg.city');
+    const twr = host.querySelector('svg.tower');
+    // No parallax: every layer of the drawing scrolls with the page.
+    if (city) city.style.transform = '';
+    if (twr) twr.style.transform = '';
+    this._bands.forEach((b) => { b.el.style.transform = ''; });
+    const n = this._bands.length;
+    this._bands.forEach((b, i) => {
+      if (b.tower) return;
+      const t = i / Math.max(1, n - 1);
+      const lit = Math.max(0, Math.min(1, (p * 1.5 - t * 0.5) / 0.55));
+      // Every landmark starts on the same quiet grey; scrolling walks each one
+      // toward its own tone, darkening as it goes.
+      const c = (this.props.cityTone === 'Single ink') ? [45, 52, 88] : b.target;
+      const mix = (a, z) => Math.round(a + (z - a) * lit);
+      b.el.style.color = 'rgb(' + mix(146, c[0]) + ',' + mix(146, c[1]) + ',' + mix(153, c[2]) + ')';
+    });
+  }
+  _tick(el, delay) {
+    if (el._ticked) return true;
+    const target = parseInt(el.getAttribute('data-tick'), 10);
+    if (!target) return true;
+    const r = el.getBoundingClientRect();
+    if (r.bottom < 0 || r.top > (window.innerHeight || 800)) return false;
+    el._ticked = true;
+    // One digit change is imperceptible, so every numeral rolls the full 00→05 span
+    // and stops on its own value: the column reads as one cascade settling.
+    const span = 5;
+    const dur = 150 * span;
+    el.textContent = '00';
+    const start = performance.now() + (delay || 0) + 260 + (target - 1) * 110;
+    const step = (now) => {
+      const t = Math.max(0, Math.min(1, (now - start) / dur));
+      el.textContent = String(Math.min(target, Math.round(t * span))).padStart(2, '0');
+      if (t < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+    return true;
+  }
+  componentDidMount() {
+    this._fillTeam();
+    this._loadSky();
+    this._mk = () => { this._syncMarker(); this._paintSky(); this._fadeMeta(); this._settleHeader(); };
+    this._fadeMeta();
+    this._settleHeader();
+
+    this._mk();
+    window.addEventListener('scroll', this._mk, { passive: true });
+    window.addEventListener('resize', this._mk);
+
+    // Fail open: elements stay visible unless the observer proves it is working.
+    const show = (el) => {
+      el._shown = true;
+      const d = Number(el.getAttribute('data-reveal')) || 0;
+
+      el.style.transition = 'opacity 560ms cubic-bezier(.22,1,.36,1) ' + d + 'ms, transform 560ms cubic-bezier(.22,1,.36,1) ' + d + 'ms, background 180ms ease-out, border-color 180ms ease-out';
+      el.style.opacity = '1';
+      el.style.transform = 'none';
+    };
+    const hide = (el) => {
+      if (el._shown || el._hidden) return;
+      el._hidden = true;
+      el.style.transition = 'none';
+      el.style.opacity = '0';
+      el.style.transform = 'translateY(10px)';
+    };
+    this._io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (e.isIntersecting) {
+          show(e.target);
+          // Only a genuine intersection starts the count, so it never runs off-screen.
+          this._io.unobserve(e.target);
+        }
+        else hide(e.target);
+      });
+    }, { threshold: 0.06 });
+    document.querySelectorAll('[data-reveal]').forEach((el) => this._io.observe(el));
+    // Numerals watch themselves: a fast flick past the section can batch an observer
+    // callback until the row is already gone, so only a started count unobserves.
+    this._tickIo = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (!e.isIntersecting) return;
+        const row = e.target.closest('[data-reveal]');
+        const d = row ? Number(row.getAttribute('data-reveal')) || 0 : 0;
+        if (this._tick(e.target, d)) this._tickIo.unobserve(e.target);
+      });
+    }, { threshold: 0.5 });
+    document.querySelectorAll('[data-tick]').forEach((el) => this._tickIo.observe(el));
+    // Hairlines draw themselves left to right as their section arrives.
+    this._ruleIo = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (!e.isIntersecting) return;
+        e.target.style.transform = 'scaleX(1)';
+        this._ruleIo.unobserve(e.target);
+      });
+    }, { rootMargin: '0px 0px -12% 0px' });
+    document.querySelectorAll('[data-rule]').forEach((el) => this._ruleIo.observe(el));
+    // Belt and braces: anything still hidden after 5s becomes visible.
+    this._safety = setTimeout(() => {
+      document.querySelectorAll('[data-reveal]').forEach((el) => { if (!el._shown) show(el); });
+    }, 5000);
+  }
+  componentDidUpdate(prev) {
+    if (prev.cityTone !== this.props.cityTone) this._paintSky();
+    this._fillTeam();
+  }
+  componentWillUnmount() {
+    clearTimeout(this._safety);
+    if (this._io) this._io.disconnect();
+    if (this._tickIo) this._tickIo.disconnect();
+    if (this._ruleIo) this._ruleIo.disconnect();
+
+    window.removeEventListener('scroll', this._mk);
+    window.removeEventListener('resize', this._mk);
+    if (this._fit) window.removeEventListener('resize', this._fit);
+    if (this._ro) this._ro.disconnect();
+
+  }
+  renderVals() {
+    return {
+      showSkyline: this.props.showSkyline ?? true,
+      gridShown: (this.props.showGrid ?? true) ? 'block' : 'none',
+      skyRef: this._skyRef,
+      railStyle: {
+        position: 'fixed',
+        left: 26,
+        top: '50%',
+        transform: 'translateY(-50%)',
+        zIndex: 40,
+        display: this.state.wide ? 'flex' : 'none',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: 16,
+        transition: 'transform 380ms cubic-bezier(.22,1,.36,1)'
+      },
+      rail: this._rail(),
+      navWhat: this._navLink('what'),
+      navHow: this._navLink('how'),
+      navTeam: this._navLink('team'),
+      exA: this._ex('a'),
+      exB: this._ex('b'),
+      exC: this._ex('c'),
+      exD: this._ex('d'),
+      trA: this._trace('a'),
+      trB: this._trace('b'),
+      trC: this._trace('c'),
+      trD: this._trace('d'),
+      name1Ref: (el) => { this._name1 = el; if (el) this._fillTeam(); },
+      name2Ref: (el) => { this._name2 = el; if (el) this._fillTeam(); },
+      bio1Ref: (el) => { this._bio1 = el; if (el) this._fillTeam(); },
+      bio2Ref: (el) => { this._bio2 = el; if (el) this._fillTeam(); },
+      cardT1: this._teamCard('t1'),
+      cardT2: this._teamCard('t2'),
+      trT1: this._trace('t1', true),
+      trT2: this._trace('t2', true),
+      onT1: () => this.setState({ hovered: 't1' }),
+      onT2: () => this.setState({ hovered: 't2' }),
+      onA: () => this.setState({ hovered: 'a' }),
+      onB: () => this.setState({ hovered: 'b' }),
+      onC: () => this.setState({ hovered: 'c' }),
+      onD: () => this.setState({ hovered: 'd' }),
+      offCard: () => this.setState({ hovered: null }),
+      steps: [
+        { n: '01', title: 'Start with your data', body: 'Images, text, audio, video: any format, clean or messy, structured or scattered. If you have data, we can work with it. We start deep in your domain, alongside your experts, to define what success looks like and where the real difficulty lies.' },
+        { n: '02', title: 'Prove it, before we promise it', body: "Hard problems come with real uncertainty, and we are honest about it: at the outset, even we don't always know a problem is solvable. Before any full engagement, we run a proof of concept, delivered with a clear report against agreed success metrics." },
+        { n: '03', title: 'Engineer for production', body: 'Once the approach is proven, we build it properly: precise, explainable, and production-ready, deployed where you need it, on your premises or in the cloud.' },
+        { n: '04', title: 'Staff training', body: "We don't just deliver a system, we make sure your people can own it. We train your staff to use it with confidence, and to understand the AI behind it, so the capability stays inside your organization." },
+        { n: '05', title: 'Day-2 operations and handover', body: 'You choose what comes next. We can run and maintain the system day-to-day, or hand it to your engineers, fully documented and supported through the transition.' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>
