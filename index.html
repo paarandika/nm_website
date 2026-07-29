@@ -107,6 +107,9 @@
     .step-body { grid-column: 1 / -1; }
     .footer-row { flex-direction: column; align-items: flex-start; gap: 20px; }
     .footer-meta { gap: 8px; flex-direction: column; }
+    /* Clear the fixed rail strip (44px tall, 10px off the bottom) so the last line of
+       the footer is never parked underneath it. */
+    footer { padding-bottom: 78px !important; }
   }
 </style>
 </helmet>
@@ -291,7 +294,9 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script>
 class Component extends DCLogic {
-  state = { hovered: null, marker: null, markerDark: false, wide: true, activeId: null, railHover: null };
+  // railMode starts 'none' so a phone never flashes the desktop side rail before
+  // componentDidMount measures the viewport.
+  state = { hovered: null, marker: null, markerDark: false, railMode: 'none', activeId: null, railHover: null };
   _trace(key, inset) {
     // The border darkens by being drawn, left to right, rather than switching on.
     const on = this.state.hovered === key;
@@ -369,15 +374,69 @@ class Component extends DCLogic {
       const r = el.getBoundingClientRect();
       if (r.top <= probe && r.bottom > probe) { active = m.label; activeId = m.id; }
     });
+    // A section is active only while it straddles the probe line at 35% of the viewport.
+    // The last section can never satisfy that: the footer below it means the page runs
+    // out of scroll while #contact is still under the line, so #team stays lit and the
+    // final marker never activates. Anchor the end of the document to the last mark.
+    // Applies to both rail modes and the header nav, which all read activeId.
+    const doc = document.documentElement;
+    if ((window.innerHeight || 800) + (window.scrollY || 0) >= doc.scrollHeight - 2) {
+      const last = marks[marks.length - 1];
+      active = last.label;
+      activeId = last.id;
+    }
     const mid = (window.innerHeight || 800) / 2;
     document.querySelectorAll('[data-ink], #contact').forEach((el) => {
       const r = el.getBoundingClientRect();
       if (r.top <= mid && r.bottom > mid) dark = true;
     });
-    const wide = window.innerWidth >= 1460;
-    if (active !== this.state.marker || dark !== this.state.markerDark || wide !== this.state.wide || activeId !== this.state.activeId) {
-      this.setState({ marker: active, markerDark: dark, wide, activeId });
+    // >=1460 there is room for the labelled side rail beside the 1280px content column.
+    // <=900 the header nav is hidden, so the rail is the only navigation and moves to a
+    // thumb-reachable strip along the bottom. Between the two the header nav is visible
+    // and a second set of section links would only be noise.
+    const w = window.innerWidth;
+    const railMode = w >= 1460 ? 'side' : (w <= 900 ? 'bottom' : 'none');
+    if (active !== this.state.marker || dark !== this.state.markerDark || railMode !== this.state.railMode || activeId !== this.state.activeId) {
+      this.setState({ marker: active, markerDark: dark, railMode, activeId });
     }
+  }
+  _railStyle() {
+    const mode = this.state.railMode;
+    const s = {
+      position: 'fixed',
+      zIndex: 40,
+      display: mode === 'none' ? 'none' : 'flex',
+      // The strip spans a whole edge of the viewport, so let taps fall through it;
+      // only the links themselves opt back in. Otherwise it silently swallows taps
+      // on whatever sits underneath.
+      pointerEvents: 'none',
+      transition: 'transform 380ms cubic-bezier(.22,1,.36,1)'
+    };
+    if (mode === 'bottom') {
+      const dark = this.state.markerDark;
+      s.left = '50%';
+      s.bottom = 'calc(10px + env(safe-area-inset-bottom, 0px))';
+      s.transform = 'translateX(-50%)';
+      s.flexDirection = 'row';
+      s.alignItems = 'center';
+      s.gap = 0;
+      // Floating over body copy, bare dots read as punctuation. A quiet pill separates
+      // them from the text and tracks the section tone the same way the dots do. No
+      // backdrop-filter: a blur behind a fixed element repaints every scroll frame,
+      // which is the one thing to avoid on the hardware this is for.
+      s.background = dark ? 'rgba(22,27,51,0.9)' : 'rgba(241,238,230,0.94)';
+      s.border = '1px solid ' + (dark ? '#2F3450' : '#D6D1C4');
+      s.borderRadius = '999px';
+      s.padding = '0 6px';
+      return s;
+    }
+    s.left = 26;
+    s.top = '50%';
+    s.transform = 'translateY(-50%)';
+    s.flexDirection = 'column';
+    s.alignItems = 'center';
+    s.gap = 16;
+    return s;
   }
 
   _rail() {
@@ -390,24 +449,37 @@ class Component extends DCLogic {
     const dark = this.state.markerDark;
     const base = dark ? '#4A4E63' : '#C2BEB2';
     const ink = dark ? '#C9C5BB' : '#6B6E85';
+    const bottom = this.state.railMode === 'bottom';
     return marks.map((m) => {
-      const hovered = this.state.railHover === m.id;
+      // The vertical labels expand on hover, which touch does not have. A tap also
+      // fires a synthetic mouseenter, so ignore railHover entirely in bottom mode
+      // rather than leaving a label stuck open after a tap.
+      const hovered = !bottom && this.state.railHover === m.id;
       const active = this.state.activeId === m.id;
-      const open = hovered || (active && !this.state.railHover);
+      const open = !bottom && (hovered || (active && !this.state.railHover));
+      const wrap = {
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        textDecoration: 'none',
+        color: open ? (dark ? '#E5A823' : '#161B33') : ink,
+        cursor: 'pointer',
+        pointerEvents: 'auto',
+        transition: 'color 200ms ease-out'
+      };
+      if (bottom) {
+        // A 5-7px dot is far under the 44px minimum touch target. Pad the anchor out to
+        // 44 square; the dot itself is unchanged, the extra area is just invisible.
+        wrap.width = 44;
+        wrap.height = 44;
+      }
       return {
         href: '#' + m.id,
         text: m.text,
         on: () => this.setState({ railHover: m.id }),
         off: () => this.setState({ railHover: null }),
-        wrap: {
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          textDecoration: 'none',
-          color: open ? (dark ? '#E5A823' : '#161B33') : ink,
-          cursor: 'pointer',
-          transition: 'color 200ms ease-out'
-        },
+        wrap: wrap,
         dot: {
           width: active ? 7 : 5,
           height: active ? 7 : 5,
@@ -416,7 +488,7 @@ class Component extends DCLogic {
           background: active ? '#E5A823' : (hovered ? ink : base),
           transition: 'background 200ms ease-out, width 240ms cubic-bezier(.22,1,.36,1), height 240ms cubic-bezier(.22,1,.36,1)'
         },
-        rule: {
+        rule: bottom ? { display: 'none' } : {
           width: 1,
           height: open ? 22 : 0,
           marginTop: open ? 10 : 0,
@@ -424,7 +496,7 @@ class Component extends DCLogic {
           opacity: open ? 0.4 : 0,
           transition: 'height 380ms cubic-bezier(.22,1,.36,1), margin-top 380ms cubic-bezier(.22,1,.36,1), opacity 260ms ease-out'
         },
-        label: {
+        label: bottom ? { display: 'none' } : {
           writingMode: 'vertical-rl',
           fontFamily: "'Geist Mono', monospace",
           fontSize: 10,
@@ -721,18 +793,7 @@ class Component extends DCLogic {
   renderVals() {
     return {
       skyRef: this._skyRef,
-      railStyle: {
-        position: 'fixed',
-        left: 26,
-        top: '50%',
-        transform: 'translateY(-50%)',
-        zIndex: 40,
-        display: this.state.wide ? 'flex' : 'none',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: 16,
-        transition: 'transform 380ms cubic-bezier(.22,1,.36,1)'
-      },
+      railStyle: this._railStyle(),
       rail: this._rail(),
       navWhat: this._navLink('what'),
       navHow: this._navLink('how'),
