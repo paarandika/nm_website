@@ -11,9 +11,18 @@
 <title>Noesis Machines — Deep AI for the real world</title>
 <meta name="description" content="Deep AI research and engineering for the industries, languages, and realities of South Asia. Industrial visual AI, deep domain AI, Sinhala language AI, and sensor-integrated systems. Colombo, Sri Lanka.">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="_ds/noesis-machines-design-system-518f2ab5-fc4b-40a6-8c58-e4b77d333e52/colors_and_type.css">
-<script src="_ds/noesis-machines-design-system-518f2ab5-fc4b-40a6-8c58-e4b77d333e52/_ds_bundle.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;family=Geist:wght@400;500&amp;family=Geist+Mono:wght@400;500&amp;display=swap">
 <style>
+  /* Carried over from the design-system stylesheet this file used to load. The tokens in
+     it were unused, but the reset is load-bearing: #top is height:calc(100svh - 71px)
+     with vertical padding, so under content-box that padding adds to the height and
+     pushes the skyline below the fold. */
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  /* font-size/line-height are inherited by the header nav and logo, which set neither. */
+  body { font-size: 16px; line-height: 1.55; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
   body { background: #F1EEE6; }
   a { color: #161B33; }
   a:hover { color: #000000; }
