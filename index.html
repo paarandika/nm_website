@@ -43,13 +43,74 @@
   @keyframes riseIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
   html { scroll-behavior: smooth; }
   @media (max-width: 900px) { .hdr-meta { display: none; } #top { height: auto !important; min-height: calc(100svh - 71px); } .hero-cap { max-width: 100% !important; } }
+  .hdr-nav { display: flex; gap: 28px; flex: 1; }
+  /* The header is a flex row that cannot shrink below logo + three links + gaps, so it
+     alone forces the document wider than a phone viewport and clips every section.
+     The side rail carries navigation on small screens (see Phase C). */
+  @media (max-width: 900px) { .hdr-nav { display: none; } }
+
+  /* ---- layout -------------------------------------------------------------
+     These live here rather than inline because a media query cannot override an
+     inline style without !important on every declaration. Anything that needs to
+     change with viewport has to be reachable from a stylesheet. */
+  .section { position: relative; padding: clamp(56px, 9vw, 112px) clamp(20px, 5vw, 32px); }
+  .wrap { max-width: 1280px; margin: 0 auto; }
+  /* Anchor jumps otherwise tuck the section heading under the sticky header. */
+  section[id] { scroll-margin-top: 84px; }
+  .rule { position: absolute; top: 0; left: 0; right: 0; height: 1px; background: #D6D1C4; transform: scaleX(0); transform-origin: left center; transition: transform 640ms cubic-bezier(.22,1,.36,1); }
+
+  /* ---- type ---------------------------------------------------------------- */
+  .eyebrow { font-family: 'Geist Mono', monospace; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: #6B6E85; margin-bottom: 24px; }
+  .display { font-family: 'Instrument Serif', Georgia, serif; font-weight: 400; letter-spacing: -0.02em; margin: 0; }
+  .display-lg { font-size: clamp(40px, 4.4vw, 72px); line-height: 1.05; }
+  .display-md { font-size: clamp(36px, 3.6vw, 56px); line-height: 1.1; }
+  .prose { font-size: 17px; line-height: 1.65; color: #2D3458; margin: 0; max-width: 60ch; text-wrap: pretty; }
+
+  /* ---- capability cards ----------------------------------------------------
+     The 2x2 lattice is drawn from the container so the lines follow the column
+     count; each card hard-coding its own borders leaves a stray right edge and a
+     missing bottom edge as soon as the grid collapses to one column. */
+  .cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 72px; border: 1px solid #D6D1C4; border-radius: 8px; overflow: hidden; background: #F8F5EC; }
+  .cap { position: relative; padding: clamp(24px, 4vw, 40px); transition: background 180ms ease-out; }
+  .cards > .cap { border-right: 1px solid #D6D1C4; border-bottom: 1px solid #D6D1C4; }
+  .cards > .cap:nth-child(2n) { border-right: 0; }
+  .cards > .cap:nth-last-child(-n+2) { border-bottom: 0; }
+  .cap-num { font-family: 'Geist Mono', monospace; font-size: 12px; letter-spacing: 0.08em; color: #E5A823; margin-bottom: 28px; }
+  .cap-title { font-family: 'Instrument Serif', Georgia, serif; font-weight: 400; font-size: clamp(26px, 3vw, 32px); line-height: 1.1; letter-spacing: -0.015em; margin: 0 0 14px; }
+  .cap-body { font-size: 15px; line-height: 1.6; color: #2D3458; margin: 0; max-width: 42ch; text-wrap: pretty; }
+
+  /* ---- grids --------------------------------------------------------------- */
+  .grid-intro { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 64px; align-items: start; }
+  .grid-team { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px; }
+  .grid-contact { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 64px; align-items: end; }
+  .step { position: relative; display: grid; grid-template-columns: 64px minmax(0, 320px) minmax(0, 1fr); gap: 32px; padding: 32px 0; align-items: start; }
+  .step-num { font-family: 'Geist Mono', monospace; font-size: 12px; letter-spacing: 0.08em; color: #E5A823; padding-top: 6px; }
+  .step-title { font-size: 20px; font-weight: 500; letter-spacing: -0.01em; margin: 0; color: #161B33; }
+  .step-body { font-size: 16px; line-height: 1.65; color: #2D3458; margin: 0; max-width: 66ch; text-wrap: pretty; }
+  .footer-row { max-width: 1280px; margin: 0 auto; padding-top: 40px; border-top: 1px solid #2F2F36; display: flex; justify-content: space-between; align-items: center; gap: 32px; flex-wrap: wrap; }
+  .footer-meta { display: flex; gap: 48px; font-family: 'Geist Mono', monospace; font-size: 11px; letter-spacing: 0.06em; color: #8C8881; text-transform: uppercase; }
+
+  @media (max-width: 900px) {
+    .grid-intro { grid-template-columns: minmax(0, 1fr); gap: 32px; }
+    .grid-team { grid-template-columns: minmax(0, 1fr); }
+    .grid-contact { grid-template-columns: minmax(0, 1fr); gap: 32px; align-items: start; }
+    .cards { grid-template-columns: minmax(0, 1fr); margin-top: 48px; }
+    .cards > .cap { border-right: 0; border-bottom: 1px solid #D6D1C4; }
+    .cards > .cap:last-child { border-bottom: 0; }
+    /* Number moves up beside the title; the body drops to its own full-width row. */
+    .step { grid-template-columns: auto minmax(0, 1fr); gap: 10px 14px; padding: 28px 0; }
+    .step-num { padding-top: 2px; }
+    .step-body { grid-column: 1 / -1; }
+    .footer-row { flex-direction: column; align-items: flex-start; gap: 20px; }
+    .footer-meta { gap: 8px; flex-direction: column; }
+  }
 </style>
 </helmet>
 
 <div style="background: #F1EEE6; color: #161B33; font-family: 'Geist', ui-sans-serif, system-ui, sans-serif; min-height: 100vh;">
 
   <header id="hdr" style="position: sticky; top: 0; z-index: 50; background: rgba(241,238,230,0.82); backdrop-filter: blur(12px); border-bottom: 1px solid transparent; transition: border-color 260ms ease-out;">
-    <div style="max-width: 1280px; margin: 0 auto; padding: 18px 32px; display: flex; align-items: center; gap: 40px;">
+    <div style="max-width: 1280px; margin: 0 auto; padding: 18px clamp(20px, 5vw, 32px); display: flex; align-items: center; gap: 40px;">
       <a href="#top" style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: #161B33;">
         <img src="assets/logo-mark.svg" width="30" height="30" alt="">
         <span style="display: flex; flex-direction: column; line-height: 1;">
@@ -57,7 +118,7 @@
           <span style="font-size: 8.5px; letter-spacing: 2.5px; font-weight: 500; margin-top: 3px;">M A C H I N E S</span>
         </span>
       </a>
-      <nav style="display: flex; gap: 28px; flex: 1;">
+      <nav class="hdr-nav">
         <a href="#what" style="{{ navWhat }}" style-hover="color: #161B33;">What we do</a>
         <a href="#how" style="{{ navHow }}" style-hover="color: #161B33;">How we work</a>
         <a href="#team" style="{{ navTeam }}" style-hover="color: #161B33;">Team</a>
@@ -76,7 +137,7 @@
     </sc-for>
   </nav>
 
-  <section id="top" style="position: relative; overflow: hidden; height: calc(100svh - 71px); display: flex; flex-direction: column; justify-content: flex-start; padding: clamp(28px, 5svh, 64px) 32px clamp(24px, 4svh, 44px);">
+  <section id="top" style="position: relative; overflow: hidden; height: calc(100svh - 71px); display: flex; flex-direction: column; justify-content: flex-start; padding: clamp(28px, 5svh, 64px) clamp(20px, 5vw, 32px) clamp(24px, 4svh, 44px);">
     <div id="grid" aria-hidden="true" style="position: absolute; left: 0; right: 0; bottom: -1px; height: 40%; pointer-events: none; z-index: 0; background-image: linear-gradient(to right, #D6D1C4 1px, transparent 1px), linear-gradient(to bottom, #D6D1C4 1px, transparent 1px); background-size: 16px 16px; background-position: center bottom; opacity: 0.42; -webkit-mask-image: linear-gradient(to bottom, transparent 4%, rgba(0,0,0,0.28) 40%, rgba(0,0,0,0.7) 68%, #000 92%); mask-image: linear-gradient(to bottom, transparent 4%, rgba(0,0,0,0.28) 40%, rgba(0,0,0,0.7) 68%, #000 92%);"></div>
     <div id="sky" ref="{{ skyRef }}" style="position: absolute; left: 0; right: 0; bottom: -1px; pointer-events: none; z-index: 0;"></div>
     <div aria-hidden="true" style="position: absolute; inset: 0 0 42% 0; pointer-events: none; z-index: 1; background: linear-gradient(100deg, #F1EEE6 0%, rgba(241,238,230,0.96) 38%, rgba(241,238,230,0.72) 56%, rgba(241,238,230,0) 76%); -webkit-mask-image: linear-gradient(to bottom, #000 0 62%, transparent 100%); mask-image: linear-gradient(to bottom, #000 0 62%, transparent 100%);"></div>
@@ -103,84 +164,84 @@
     </div>
   </section>
 
-  <section id="what" style="padding: 112px 32px;">
-    <div style="max-width: 1280px; margin: 0 auto;">
-      <div style="font-family: 'Geist Mono', monospace; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: #6B6E85; margin-bottom: 24px;">What we do</div>
-      <div data-reveal="0" style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 64px; align-items: start;">
-        <h2 style="font-family: 'Instrument Serif', Georgia, serif; font-weight: 400; font-size: clamp(40px, 4.4vw, 72px); line-height: 1.05; letter-spacing: -0.02em; margin: 0; max-width: 20ch;">
+  <section id="what" class="section">
+    <div class="wrap">
+      <div class="eyebrow">What we do</div>
+      <div data-reveal="0" class="grid-intro">
+        <h2 class="display display-lg" style="max-width: 20ch;">
           We solve problems that are <em style="color: #5C6B4A;">too hard for generic tools.</em>
         </h2>
         <div style="display: flex; flex-direction: column; gap: 20px; padding-top: 8px;">
-          <p style="font-size: 17px; line-height: 1.65; color: #2D3458; margin: 0; max-width: 60ch; text-wrap: pretty;">
+          <p class="prose">
             We are pragmatic before we are ambitious. Where a proven model or existing API solves your problem well, we use it. The fastest, most reliable path to value is usually the right one. Our specialty begins where those tools reach their limits: problems that demand bespoke systems, original research, and machine learning engineered specifically for your domain.
           </p>
-          <p style="font-size: 17px; line-height: 1.65; color: #2D3458; margin: 0; max-width: 60ch; text-wrap: pretty;">
+          <p class="prose">
             You bring an intimate understanding of your business; we bring rigorous machine learning and the engineering discipline to put it into production. The result is AI that is precise, explainable, and built for the realities of how you operate.
           </p>
         </div>
       </div>
 
-      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 72px; border: 1px solid #D6D1C4; border-radius: 8px; overflow: hidden; background: #F8F5EC;">
-        <div data-reveal="0" onMouseEnter="{{ onA }}" onMouseLeave="{{ offCard }}" style="position: relative; padding: 40px; border-right: 1px solid #D6D1C4; border-bottom: 1px solid #D6D1C4; transition: background 180ms ease-out;" style-hover="background: #E4DFD2;">
+      <div class="cards">
+        <div data-reveal="0" class="cap" onMouseEnter="{{ onA }}" onMouseLeave="{{ offCard }}" style-hover="background: #E4DFD2;">
           <div aria-hidden="true" style="{{ trA }}"></div>
-          <div style="font-family: 'Geist Mono', monospace; font-size: 12px; letter-spacing: 0.08em; color: #E5A823; margin-bottom: 28px;">01</div>
-          <h3 style="font-family: 'Instrument Serif', Georgia, serif; font-weight: 400; font-size: 32px; line-height: 1.1; letter-spacing: -0.015em; margin: 0 0 14px;">Industrial Visual AI</h3>
-          <p style="font-size: 15px; line-height: 1.6; color: #2D3458; margin: 0; max-width: 42ch; text-wrap: pretty;">Machine vision for the factory floor: automated inspection, defect detection, and quality grading on live production lines. Engineered to run on-premise and at the edge, keeping your data and operations entirely under your control.</p>
+          <div class="cap-num">01</div>
+          <h3 class="cap-title">Industrial Visual AI</h3>
+          <p class="cap-body">Machine vision for the factory floor: automated inspection, defect detection, and quality grading on live production lines. Engineered to run on-premise and at the edge, keeping your data and operations entirely under your control.</p>
           <div style="{{ exA }}">Example: defect detection on a live apparel line</div>
         </div>
-        <div data-reveal="80" onMouseEnter="{{ onB }}" onMouseLeave="{{ offCard }}" style="position: relative; padding: 40px; border-bottom: 1px solid #D6D1C4; transition: background 180ms ease-out;" style-hover="background: #E4DFD2;">
+        <div data-reveal="80" class="cap" onMouseEnter="{{ onB }}" onMouseLeave="{{ offCard }}" style-hover="background: #E4DFD2;">
           <div aria-hidden="true" style="{{ trB }}"></div>
-          <div style="font-family: 'Geist Mono', monospace; font-size: 12px; letter-spacing: 0.08em; color: #E5A823; margin-bottom: 28px;">02</div>
-          <h3 style="font-family: 'Instrument Serif', Georgia, serif; font-weight: 400; font-size: 32px; line-height: 1.1; letter-spacing: -0.015em; margin: 0 0 14px;">Deep Domain AI</h3>
-          <p style="font-size: 15px; line-height: 1.6; color: #2D3458; margin: 0; max-width: 42ch; text-wrap: pretty;">Models built from the ground up on your own data, however complex or imperfect. From predictive analytics and process optimization to anomaly detection, every system is designed alongside your domain experts to capture knowledge no generic model can.</p>
+          <div class="cap-num">02</div>
+          <h3 class="cap-title">Deep Domain AI</h3>
+          <p class="cap-body">Models built from the ground up on your own data, however complex or imperfect. From predictive analytics and process optimization to anomaly detection, every system is designed alongside your domain experts to capture knowledge no generic model can.</p>
           <div style="{{ exB }}">Example: yield forecasting from plantation records</div>
         </div>
-        <div data-reveal="160" onMouseEnter="{{ onC }}" onMouseLeave="{{ offCard }}" style="position: relative; padding: 40px; border-right: 1px solid #D6D1C4; transition: background 180ms ease-out;" style-hover="background: #E4DFD2;">
+        <div data-reveal="160" class="cap" onMouseEnter="{{ onC }}" onMouseLeave="{{ offCard }}" style-hover="background: #E4DFD2;">
           <div aria-hidden="true" style="{{ trC }}"></div>
-          <div style="font-family: 'Geist Mono', monospace; font-size: 12px; letter-spacing: 0.08em; color: #E5A823; margin-bottom: 28px;">03</div>
-          <h3 style="font-family: 'Instrument Serif', Georgia, serif; font-weight: 400; font-size: 32px; line-height: 1.1; letter-spacing: -0.015em; margin: 0 0 14px;">Language AI for Sinhala &amp; South Asian Languages</h3>
-          <p style="font-size: 15px; line-height: 1.6; color: #2D3458; margin: 0; max-width: 42ch; text-wrap: pretty;">Natural language technology built for the region's languages and context: OCR, speech-to-text, translation, document understanding, and conversational systems that operate fluently in Sinhala and beyond.</p>
+          <div class="cap-num">03</div>
+          <h3 class="cap-title">Language AI for Sinhala &amp; South Asian Languages</h3>
+          <p class="cap-body">Natural language technology built for the region's languages and context: OCR, speech-to-text, translation, document understanding, and conversational systems that operate fluently in Sinhala and beyond.</p>
           <div style="{{ exC }}">Example: Sinhala document OCR with searchable output</div>
         </div>
-        <div data-reveal="240" onMouseEnter="{{ onD }}" onMouseLeave="{{ offCard }}" style="position: relative; padding: 40px; transition: background 180ms ease-out;" style-hover="background: #E4DFD2;">
+        <div data-reveal="240" class="cap" onMouseEnter="{{ onD }}" onMouseLeave="{{ offCard }}" style-hover="background: #E4DFD2;">
           <div aria-hidden="true" style="{{ trD }}"></div>
-          <div style="font-family: 'Geist Mono', monospace; font-size: 12px; letter-spacing: 0.08em; color: #E5A823; margin-bottom: 28px;">04</div>
-          <h3 style="font-family: 'Instrument Serif', Georgia, serif; font-weight: 400; font-size: 32px; line-height: 1.1; letter-spacing: -0.015em; margin: 0 0 14px;">IoT &amp; Sensor-Integrated AI</h3>
-          <p style="font-size: 15px; line-height: 1.6; color: #2D3458; margin: 0; max-width: 42ch; text-wrap: pretty;">Intelligence built from live sensor data: real-time monitoring, sensor fusion, and predictive maintenance, deployed reliably on edge and resource-constrained hardware.</p>
+          <div class="cap-num">04</div>
+          <h3 class="cap-title">IoT &amp; Sensor-Integrated AI</h3>
+          <p class="cap-body">Intelligence built from live sensor data: real-time monitoring, sensor fusion, and predictive maintenance, deployed reliably on edge and resource-constrained hardware.</p>
           <div style="{{ exD }}">Example: predictive maintenance from vibration sensors</div>
         </div>
       </div>
     </div>
   </section>
 
-  <section id="how" style="position: relative; padding: 112px 32px; background: #F8F5EC;">
-    <div data-rule="" aria-hidden="true" style="position: absolute; top: 0; left: 0; right: 0; height: 1px; background: #D6D1C4; transform: scaleX(0); transform-origin: left center; transition: transform 640ms cubic-bezier(.22,1,.36,1);"></div>
-    <div style="max-width: 1280px; margin: 0 auto;">
-      <div style="font-family: 'Geist Mono', monospace; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: #6B6E85; margin-bottom: 24px;">How we work</div>
-      <h2 data-reveal="0" style="font-family: 'Instrument Serif', Georgia, serif; font-style: italic; font-weight: 400; font-size: clamp(36px, 3.6vw, 56px); line-height: 1.1; letter-spacing: -0.02em; margin: 0 0 72px; max-width: 24ch;">
+  <section id="how" class="section" style="background: #F8F5EC;">
+    <div data-rule="" aria-hidden="true" class="rule"></div>
+    <div class="wrap">
+      <div class="eyebrow">How we work</div>
+      <h2 data-reveal="0" class="display display-md" style="font-style: italic; margin: 0 0 72px; max-width: 24ch;">
         Every problem is different. Our approach is not.
       </h2>
       <div style="display: flex; flex-direction: column;">
         <sc-for list="{{ steps }}" as="step" hint-placeholder-count="5">
-          <div data-reveal="0" style="position: relative; display: grid; grid-template-columns: 64px minmax(0, 320px) minmax(0, 1fr); gap: 32px; padding: 32px 0; align-items: start;">
-            <div data-rule="" aria-hidden="true" style="position: absolute; top: 0; left: 0; right: 0; height: 1px; background: #D6D1C4; transform: scaleX(0); transform-origin: left center; transition: transform 640ms cubic-bezier(.22,1,.36,1);"></div>
-            <div style="font-family: 'Geist Mono', monospace; font-size: 12px; letter-spacing: 0.08em; color: #E5A823; padding-top: 6px;" data-tick="{{ step.n }}">{{ step.n }}</div>
-            <h4 style="font-size: 20px; font-weight: 500; letter-spacing: -0.01em; margin: 0; color: #161B33;">{{ step.title }}</h4>
-            <p style="font-size: 16px; line-height: 1.65; color: #2D3458; margin: 0; max-width: 66ch; text-wrap: pretty;">{{ step.body }}</p>
+          <div data-reveal="0" class="step">
+            <div data-rule="" aria-hidden="true" class="rule"></div>
+            <div class="step-num" data-tick="{{ step.n }}">{{ step.n }}</div>
+            <h4 class="step-title">{{ step.title }}</h4>
+            <p class="step-body">{{ step.body }}</p>
           </div>
         </sc-for>
       </div>
     </div>
   </section>
 
-  <section id="team" style="position: relative; padding: 112px 32px;">
-    <div data-rule="" aria-hidden="true" style="position: absolute; top: 0; left: 0; right: 0; height: 1px; background: #D6D1C4; transform: scaleX(0); transform-origin: left center; transition: transform 640ms cubic-bezier(.22,1,.36,1);"></div>
-    <div style="max-width: 1280px; margin: 0 auto;">
-      <div style="font-family: 'Geist Mono', monospace; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: #6B6E85; margin-bottom: 24px;">The team</div>
-      <h2 data-reveal="0" style="font-family: 'Instrument Serif', Georgia, serif; font-weight: 400; font-size: clamp(36px, 3.6vw, 56px); line-height: 1.1; letter-spacing: -0.02em; margin: 0 0 48px; max-width: 30ch;">
+  <section id="team" class="section">
+    <div data-rule="" aria-hidden="true" class="rule"></div>
+    <div class="wrap">
+      <div class="eyebrow">The team</div>
+      <h2 data-reveal="0" class="display display-md" style="margin: 0 0 48px; max-width: 30ch;">
         Founded by two applied scientists with two decades in machine learning.
       </h2>
-      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px;">
+      <div class="grid-team">
         <div data-reveal="0" data-nosnippet="" onMouseEnter="{{ onT1 }}" onMouseLeave="{{ offCard }}" style="{{ cardT1 }}">
           <div aria-hidden="true" style="{{ trT1 }}"></div>
           <h4 ref="{{ name1Ref }}" style="font-size: 20px; font-weight: 500; margin: 0 0 4px; min-height: 1em;"></h4>
@@ -197,12 +258,12 @@
     </div>
   </section>
 
-  <section id="contact" style="position: relative; padding: 112px 32px; background: #161B33; color: #F1EEE6;">
-    <div data-rule="" aria-hidden="true" style="position: absolute; top: 0; left: 0; right: 0; height: 1px; background: #D6D1C4; transform: scaleX(0); transform-origin: left center; transition: transform 640ms cubic-bezier(.22,1,.36,1);"></div>
-    <div style="max-width: 1280px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 64px; align-items: end;">
+  <section id="contact" class="section" style="background: #161B33; color: #F1EEE6;">
+    <div data-rule="" aria-hidden="true" class="rule"></div>
+    <div class="wrap grid-contact">
       <div>
-        <div style="font-family: 'Geist Mono', monospace; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: #8C8881; margin-bottom: 28px;">Contact</div>
-        <h2 data-reveal="0" style="font-family: 'Instrument Serif', Georgia, serif; font-weight: 400; font-size: clamp(40px, 4.4vw, 72px); line-height: 1.05; letter-spacing: -0.02em; margin: 0; color: #F1EEE6; max-width: 22ch;">
+        <div class="eyebrow" style="color: #8C8881; margin-bottom: 28px;">Contact</div>
+        <h2 data-reveal="0" class="display display-lg" style="color: #F1EEE6; max-width: 22ch;">
           Bring us the <em style="color: #E5A823;">hard problems.</em>
         </h2>
       </div>
@@ -213,10 +274,10 @@
     </div>
   </section>
 
-  <footer style="background: #161B33; color: #F1EEE6; padding: 0 32px 40px;">
-    <div style="max-width: 1280px; margin: 0 auto; padding-top: 40px; border-top: 1px solid #2F2F36; display: flex; justify-content: space-between; align-items: center; gap: 32px; flex-wrap: wrap;">
+  <footer style="background: #161B33; color: #F1EEE6; padding: 0 clamp(20px, 5vw, 32px) 40px;">
+    <div class="footer-row">
       <img src="assets/logo-lockup-bone.svg" height="40" alt="Noesis Machines">
-      <div style="display: flex; gap: 48px; font-family: 'Geist Mono', monospace; font-size: 11px; letter-spacing: 0.06em; color: #8C8881; text-transform: uppercase;">
+      <div class="footer-meta">
         <span>© 2026 Noesis Machines</span>
         <span>Machines that know.</span>
       </div>
