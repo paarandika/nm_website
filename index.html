@@ -446,11 +446,34 @@ class Component extends DCLogic {
     const city = this._sky && this._sky.querySelector('svg.city');
     const grid = document.getElementById('grid');
     if (!city || !grid) return;
-    // The city's viewBox keeps ~33 of its 450 units as empty sky below the building
-    // feet, so lift the grid by that much to sit its bottom edge on the drawn horizon.
+    // The viewBox keeps a band of empty sky below the building feet. Pinned to the
+    // section floor that band is the last thing on screen, so the drawing reads as
+    // floating above the fold. Drop the whole host by the band instead: the drawn
+    // horizon then lands on the bottom of the first view and #top clips the rest. The
+    // tower shares the host, so city and tower stay locked to each other.
     const h = city.getBoundingClientRect().height;
-    grid.style.height = (h * (417 / 450)).toFixed(1) + 'px';
-    grid.style.bottom = (h * (33 / 450) - 1).toFixed(1) + 'px';
+    const units = this._skirtUnits();
+    if (!h || units == null) return;
+    const skirt = units * (h / 450);
+    this._sky.style.bottom = (-skirt).toFixed(1) + 'px';
+    grid.style.height = (h - skirt).toFixed(1) + 'px';
+    grid.style.bottom = '0px';
+  }
+  _skirtUnits() {
+    // Height of that empty band, in viewBox units. Measured rather than hard-coded: the
+    // 33/450 this file used to assume is ~3 units too tall, which is enough to push the
+    // horizon off the bottom of the screen entirely. It is a property of the artwork,
+    // not the layout, so measure once — getBBox walks all 2847 paths and this runs on
+    // every resize.
+    if (this._skirt != null) return this._skirt;
+    const city = this._sky && this._sky.querySelector('svg.city');
+    const vb = city && city.viewBox && city.viewBox.baseVal;
+    if (!vb || !vb.height) return null;
+    let ink = null;
+    try { ink = city.getBBox(); } catch (e) { ink = null; }
+    if (!ink || !ink.height) return null;
+    this._skirt = Math.max(0, (vb.y + vb.height) - (ink.y + ink.height));
+    return this._skirt;
   }
   _fitTower() {
     this._fitGrid();
