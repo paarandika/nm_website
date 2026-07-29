@@ -95,7 +95,11 @@
     .grid-team { grid-template-columns: minmax(0, 1fr); }
     .grid-contact { grid-template-columns: minmax(0, 1fr); gap: 32px; align-items: start; }
     .cards { grid-template-columns: minmax(0, 1fr); margin-top: 48px; }
-    .cards > .cap { border-right: 0; border-bottom: 1px solid #D6D1C4; }
+    .cards > .cap { border-right: 0; }
+    /* Must match the specificity of the two-column rule it undoes: that selector is
+       0,3,0 and a bare `.cards > .cap` is 0,2,0, so source order alone loses and the
+       last two cards keep the "bottom row" treatment — no divider between 03 and 04. */
+    .cards > .cap:nth-last-child(-n+2) { border-bottom: 1px solid #D6D1C4; }
     .cards > .cap:last-child { border-bottom: 0; }
     /* Number moves up beside the title; the body drops to its own full-width row. */
     .step { grid-template-columns: auto minmax(0, 1fr); gap: 10px 14px; padding: 28px 0; }
