@@ -90,6 +90,26 @@
   .footer-row { max-width: 1280px; margin: 0 auto; padding-top: 40px; border-top: 1px solid #2F2F36; display: flex; justify-content: space-between; align-items: center; gap: 32px; flex-wrap: wrap; }
   .footer-meta { display: flex; gap: 48px; font-family: 'Geist Mono', monospace; font-size: 11px; letter-spacing: 0.06em; color: #8C8881; text-transform: uppercase; }
 
+  /* ---- buttons and links --------------------------------------------------- */
+  .btn { font-size: 14px; font-weight: 500; padding: 12px 22px; border-radius: 4px; text-decoration: none; white-space: nowrap; transition: background 180ms ease-out; }
+  .btn-solid { background: #161B33; color: #F1EEE6; }
+  .btn-ghost { color: #161B33; background: #F1EEE6; border: 1px solid #161B33; }
+  .btn-solid:active { transform: translateY(1px); }
+  .contact-mail { font-family: 'Geist Mono', monospace; font-size: 18px; color: #F1EEE6; text-decoration: none; border-bottom: 1px solid #E5A823; padding-bottom: 4px; transition: color 180ms ease-out; }
+
+  /* ---- hover ---------------------------------------------------------------
+     Gated on a real hover-capable pointer. On touch, :hover latches after a tap
+     and the highlight stays stuck until you tap elsewhere. The header nav needs
+     !important because _navLink sets colour as an inline style for the active
+     state, which no stylesheet rule can outrank. */
+  @media (hover: hover) {
+    .hdr-nav a:hover { color: #161B33 !important; }
+    .btn-solid:hover { background: #000000; }
+    .btn-ghost:hover { background: #E4DFD2; }
+    .cards > .cap:hover { background: #E4DFD2; }
+    .contact-mail:hover { color: #E5A823; }
+  }
+
   @media (max-width: 900px) {
     .grid-intro { grid-template-columns: minmax(0, 1fr); gap: 32px; }
     .grid-team { grid-template-columns: minmax(0, 1fr); }
@@ -126,9 +146,9 @@
         </span>
       </a>
       <nav class="hdr-nav">
-        <a href="#what" style="{{ navWhat }}" style-hover="color: #161B33;">What we do</a>
-        <a href="#how" style="{{ navHow }}" style-hover="color: #161B33;">How we work</a>
-        <a href="#team" style="{{ navTeam }}" style-hover="color: #161B33;">Team</a>
+        <a href="#what" style="{{ navWhat }}">What we do</a>
+        <a href="#how" style="{{ navHow }}">How we work</a>
+        <a href="#team" style="{{ navTeam }}">Team</a>
       </nav>
       <div style="font-family: 'Geist Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #ADA79B; white-space: nowrap; transition: opacity 320ms ease-out;" class="hdr-meta">Colombo, Sri Lanka · 6.9271° N, 79.8612° E</div>
     </div>
@@ -163,8 +183,8 @@
           You know your industry. We know AI. Bring us the hard problems. We build deep AI for the industries, languages, and realities of the region. Not API wrappers, not repackaged generic models.
         </p>
         <div style="display: flex; gap: 14px; align-items: center; flex-wrap: wrap;">
-          <a href="#contact" style="font-size: 14px; font-weight: 500; padding: 12px 22px; background: #161B33; color: #F1EEE6; border-radius: 4px; text-decoration: none; transition: background 180ms ease-out;" style-hover="background: #000000;" style-active="transform: translateY(1px);">Talk to us →</a>
-          <a href="#what" style="font-size: 14px; font-weight: 500; padding: 12px 22px; color: #161B33; background: #F1EEE6; border: 1px solid #161B33; border-radius: 4px; text-decoration: none; white-space: nowrap;" style-hover="background: #E4DFD2;">What we do</a>
+          <a href="#contact" class="btn btn-solid">Talk to us →</a>
+          <a href="#what" class="btn btn-ghost">What we do</a>
         </div>
       </div>
 
@@ -189,28 +209,28 @@
       </div>
 
       <div class="cards">
-        <div data-reveal="0" class="cap" onMouseEnter="{{ onA }}" onMouseLeave="{{ offCard }}" style-hover="background: #E4DFD2;">
+        <div data-reveal="0" class="cap" onMouseEnter="{{ onA }}" onMouseLeave="{{ offCard }}" onClick="{{ tapA }}">
           <div aria-hidden="true" style="{{ trA }}"></div>
           <div class="cap-num">01</div>
           <h3 class="cap-title">Industrial Visual AI</h3>
           <p class="cap-body">Machine vision for the factory floor: automated inspection, defect detection, and quality grading on live production lines. Engineered to run on-premise and at the edge, keeping your data and operations entirely under your control.</p>
           <div style="{{ exA }}">Example: defect detection on a live apparel line</div>
         </div>
-        <div data-reveal="80" class="cap" onMouseEnter="{{ onB }}" onMouseLeave="{{ offCard }}" style-hover="background: #E4DFD2;">
+        <div data-reveal="80" class="cap" onMouseEnter="{{ onB }}" onMouseLeave="{{ offCard }}" onClick="{{ tapB }}">
           <div aria-hidden="true" style="{{ trB }}"></div>
           <div class="cap-num">02</div>
           <h3 class="cap-title">Deep Domain AI</h3>
           <p class="cap-body">Models built from the ground up on your own data, however complex or imperfect. From predictive analytics and process optimization to anomaly detection, every system is designed alongside your domain experts to capture knowledge no generic model can.</p>
           <div style="{{ exB }}">Example: yield forecasting from plantation records</div>
         </div>
-        <div data-reveal="160" class="cap" onMouseEnter="{{ onC }}" onMouseLeave="{{ offCard }}" style-hover="background: #E4DFD2;">
+        <div data-reveal="160" class="cap" onMouseEnter="{{ onC }}" onMouseLeave="{{ offCard }}" onClick="{{ tapC }}">
           <div aria-hidden="true" style="{{ trC }}"></div>
           <div class="cap-num">03</div>
           <h3 class="cap-title">Language AI for Sinhala &amp; South Asian Languages</h3>
           <p class="cap-body">Natural language technology built for the region's languages and context: OCR, speech-to-text, translation, document understanding, and conversational systems that operate fluently in Sinhala and beyond.</p>
           <div style="{{ exC }}">Example: Sinhala document OCR with searchable output</div>
         </div>
-        <div data-reveal="240" class="cap" onMouseEnter="{{ onD }}" onMouseLeave="{{ offCard }}" style-hover="background: #E4DFD2;">
+        <div data-reveal="240" class="cap" onMouseEnter="{{ onD }}" onMouseLeave="{{ offCard }}" onClick="{{ tapD }}">
           <div aria-hidden="true" style="{{ trD }}"></div>
           <div class="cap-num">04</div>
           <h3 class="cap-title">IoT &amp; Sensor-Integrated AI</h3>
@@ -249,13 +269,13 @@
         Founded by two applied scientists with two decades in machine learning.
       </h2>
       <div class="grid-team">
-        <div data-reveal="0" data-nosnippet="" onMouseEnter="{{ onT1 }}" onMouseLeave="{{ offCard }}" style="{{ cardT1 }}">
+        <div data-reveal="0" data-nosnippet="" onMouseEnter="{{ onT1 }}" onMouseLeave="{{ offCard }}" onClick="{{ tapT1 }}" style="{{ cardT1 }}">
           <div aria-hidden="true" style="{{ trT1 }}"></div>
           <h4 ref="{{ name1Ref }}" style="font-size: 20px; font-weight: 500; margin: 0 0 4px; min-height: 1em;"></h4>
           <div style="font-family: 'Geist Mono', monospace; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: #6B6E85; margin-bottom: 18px;">Co-founder &amp; Scientist</div>
           <p ref="{{ bio1Ref }}" style="font-size: 15px; line-height: 1.6; color: #2D3458; margin: 0; max-width: 46ch; min-height: 4.8em;"></p>
         </div>
-        <div data-reveal="120" data-nosnippet="" onMouseEnter="{{ onT2 }}" onMouseLeave="{{ offCard }}" style="{{ cardT2 }}">
+        <div data-reveal="120" data-nosnippet="" onMouseEnter="{{ onT2 }}" onMouseLeave="{{ offCard }}" onClick="{{ tapT2 }}" style="{{ cardT2 }}">
           <div aria-hidden="true" style="{{ trT2 }}"></div>
           <h4 ref="{{ name2Ref }}" style="font-size: 20px; font-weight: 500; margin: 0 0 4px; min-height: 1em;"></h4>
           <div style="font-family: 'Geist Mono', monospace; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: #6B6E85; margin-bottom: 18px;">Co-founder &amp; Scientist</div>
@@ -275,7 +295,7 @@
         </h2>
       </div>
       <div data-reveal="120" style="display: flex; flex-direction: column; gap: 14px; align-items: flex-start;">
-        <a href="mailto:hello@noesismachines.ai" style="font-family: 'Geist Mono', monospace; font-size: 18px; color: #F1EEE6; text-decoration: none; border-bottom: 1px solid #E5A823; padding-bottom: 4px;" style-hover="color: #E5A823;">hello@noesismachines.ai</a>
+        <a href="mailto:hello@noesismachines.ai" class="contact-mail">hello@noesismachines.ai</a>
         <span style="font-size: 14px; color: #C9C5BB;">Colombo, Sri Lanka</span>
       </div>
     </div>
@@ -357,6 +377,25 @@ class Component extends DCLogic {
       lineHeight: 1.5,
       letterSpacing: '0.06em',
       color: '#5C6B4A'
+    };
+  }
+  _hasHover() {
+    return !(window.matchMedia && window.matchMedia('(hover: none)').matches);
+  }
+  // The reveal was wired to mouseenter/mouseleave only, so on a phone the "Example:" line
+  // and the border trace were unreachable. A tap does fire a synthetic mouseenter, so the
+  // two paths have to be mutually exclusive or enter-then-click would cancel out and
+  // nothing would ever open. Pointer capability decides which one is live.
+  _enterCard(key) {
+    return () => { if (this._hasHover()) this.setState({ hovered: key }); };
+  }
+  _leaveCard() {
+    return () => { if (this._hasHover()) this.setState({ hovered: null }); };
+  }
+  _tapCard(key) {
+    return () => {
+      if (this._hasHover()) return;
+      this.setState({ hovered: this.state.hovered === key ? null : key });
     };
   }
   _syncMarker() {
@@ -814,13 +853,19 @@ class Component extends DCLogic {
       cardT2: this._teamCard('t2'),
       trT1: this._trace('t1', true),
       trT2: this._trace('t2', true),
-      onT1: () => this.setState({ hovered: 't1' }),
-      onT2: () => this.setState({ hovered: 't2' }),
-      onA: () => this.setState({ hovered: 'a' }),
-      onB: () => this.setState({ hovered: 'b' }),
-      onC: () => this.setState({ hovered: 'c' }),
-      onD: () => this.setState({ hovered: 'd' }),
-      offCard: () => this.setState({ hovered: null }),
+      onT1: this._enterCard('t1'),
+      onT2: this._enterCard('t2'),
+      onA: this._enterCard('a'),
+      onB: this._enterCard('b'),
+      onC: this._enterCard('c'),
+      onD: this._enterCard('d'),
+      offCard: this._leaveCard(),
+      tapT1: this._tapCard('t1'),
+      tapT2: this._tapCard('t2'),
+      tapA: this._tapCard('a'),
+      tapB: this._tapCard('b'),
+      tapC: this._tapCard('c'),
+      tapD: this._tapCard('d'),
       steps: [
         { n: '01', title: 'Start with your data', body: 'Images, text, audio, video: any format, clean or messy, structured or scattered. If you have data, we can work with it. We start deep in your domain, alongside your experts, to define what success looks like and where the real difficulty lies.' },
         { n: '02', title: 'Prove it, before we promise it', body: "Hard problems come with real uncertainty, and we are honest about it: at the outset, even we don't always know a problem is solvable. Before any full engagement, we run a proof of concept, delivered with a clear report against agreed success metrics." },
