@@ -453,9 +453,17 @@ class Component extends DCLogic {
     };
     if (mode === 'bottom') {
       const dark = this.state.markerDark;
+      // Over the hero the strip lands squarely on the drawn horizon, so hold it back
+      // until the first content section is reached. activeId is null for exactly that
+      // span, so no extra state is needed. visibility (not display) keeps it in flow so
+      // the entrance can animate, and also blocks taps on the links while hidden.
+      const shown = !!this.state.activeId;
       s.left = '50%';
       s.bottom = 'calc(10px + env(safe-area-inset-bottom, 0px))';
-      s.transform = 'translateX(-50%)';
+      s.opacity = shown ? 1 : 0;
+      s.visibility = shown ? 'visible' : 'hidden';
+      s.transform = 'translateX(-50%) translateY(' + (shown ? '0' : '8px') + ')';
+      s.transition = 'opacity 260ms ease-out, visibility 260ms, transform 380ms cubic-bezier(.22,1,.36,1)';
       s.flexDirection = 'row';
       s.alignItems = 'center';
       s.gap = 0;
