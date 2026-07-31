@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+
+# Founder names and bios are fetched from this file at runtime. Disallowing it
+# stops Googlebot's renderer from loading it as a subresource, so the names
+# never enter the index. The rest of the site indexes normally.
+Disallow: /assets/team.json

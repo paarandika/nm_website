@@ -3,6 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<script>
+  // The page stays display:none until React mounts, so at load the document has no
+  // height for the browser to restore a saved scroll position into. Left on 'auto' that
+  // restore stays pending and fires once content appears, reading as a stray scroll.
+  // Must run before the runtime, hence inline here.
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+</script>
 <script src="./support.js"></script>
 </head>
 <body>
@@ -339,23 +346,31 @@ class Component extends DCLogic {
       pointerEvents: 'none'
     };
   }
-  // Founder details are assembled at runtime and never appear as literal strings in
-  // the served markup, so a crawler that does not execute JS has nothing to index.
-  _people() {
-    const d = (a) => a.map((n) => String.fromCharCode(n)).join('');
-    return [
-      { n: d([83,104,97,122,97,110,32,74,97,98,98,97,114]),
-        b: d([78,76,80,44,32,103,101,110,101,114,97,116,105,118,101,32,65,73,44,32,115,101,97,114,99,104,44,32,97,110,100,32,114,101,99,111,109,109,101,110,100,97,116,105,111,110,32,115,121,115,116,101,109,115,46,32,70,111,114,109,101,114,32,76,101,97,100,32,77,76,32,83,99,105,101,110,116,105,115,116,32,97,116,32,116,104,101,32,65,108,98,101,114,116,97,32,77,97,99,104,105,110,101,32,73,110,116,101,108,108,105,103,101,110,99,101,32,73,110,115,116,105,116,117,116,101,59,32,53,48,48,43,32,99,105,116,97,116,105,111,110,115,46,32,77,83,99,44,32,85,110,105,118,101,114,115,105,116,121,32,111,102,32,65,108,98,101,114,116,97,46]) },
-      { n: d([65,121,97,110,116,104,97,32,82,97,110,100,105,107,97]),
-        b: d([67,111,109,112,117,116,101,114,32,118,105,115,105,111,110,44,32,79,67,82,44,32,97,110,100,32,108,97,114,103,101,32,108,97,110,103,117,97,103,101,32,109,111,100,101,108,115,46,32,80,97,116,101,110,116,45,104,111,108,100,101,114,44,32,73,67,68,65,82,45,112,117,98,108,105,115,104,101,100,44,32,101,120,45,65,87,83,32,97,110,100,32,76,111,110,100,111,110,32,83,116,111,99,107,32,69,120,99,104,97,110,103,101,32,71,114,111,117,112,46,32,77,83,99,44,32,85,110,105,118,101,114,115,105,116,121,32,111,102,32,65,108,98,101,114,116,97,46]) }
-    ];
+  // Founder details live in assets/team.json, which robots.txt disallows. Googlebot's
+  // renderer refuses to fetch a disallowed subresource, so the names never reach the
+  // index while the rest of the page indexes normally. The payload is base64 so a
+  // scraper that ignores robots.txt cannot lift them with a plain regex either - that
+  // is obfuscation, not protection, and it is not meant to be more.
+  //
+  // Anything that prerenders this page MUST block that request, or the names get baked
+  // into the static markup and this whole arrangement is silently defeated.
+  _loadTeam() {
+    if (this._teamReq) return this._teamReq;
+    // atob yields Latin-1; round-trip through TextDecoder so non-ASCII names survive.
+    const dec = (s) => new TextDecoder().decode(Uint8Array.from(atob(s), (c) => c.charCodeAt(0)));
+    this._teamReq = fetch('assets/team.json')
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status))))
+      .then((payload) => { this._team = JSON.parse(dec(payload.d)); this._fillTeam(); })
+      .catch(() => { this._team = null; });
+    return this._teamReq;
   }
   _fillTeam() {
-    const p = this._people();
-    if (this._name1) this._name1.textContent = p[0].n;
-    if (this._bio1) this._bio1.textContent = p[0].b;
-    if (this._name2) this._name2.textContent = p[1].n;
-    if (this._bio2) this._bio2.textContent = p[1].b;
+    const p = this._team;
+    if (!p) return;
+    if (this._name1) this._name1.textContent = p[0].name;
+    if (this._bio1) this._bio1.textContent = p[0].bio;
+    if (this._name2) this._name2.textContent = p[1].name;
+    if (this._bio2) this._bio2.textContent = p[1].bio;
   }
   _teamCard(key) {
     const on = this.state.hovered === key;
@@ -840,8 +855,21 @@ class Component extends DCLogic {
     requestAnimationFrame(step);
     return true;
   }
+  _settleScroll() {
+    // Mounting is what gives the document its height, so this is the first moment the
+    // viewport can be placed deliberately. Without it a saved scroll position restores
+    // only once the content appears, which reads as a stray scroll away from the top.
+    // 'instant' opts out of the scroll-behavior:smooth rule, which would animate it.
+    let target = null;
+    if (location.hash.length > 1) {
+      try { target = document.querySelector(location.hash); } catch (e) { target = null; }
+    }
+    if (target) target.scrollIntoView({ behavior: 'instant', block: 'start' });
+    else window.scrollTo({ top: 0, behavior: 'instant' });
+  }
   componentDidMount() {
-    this._fillTeam();
+    this._settleScroll();
+    this._loadTeam();
     this._loadSky();
     // A scroll can fire many times per frame; the browser only paints once. Coalesce so
     // the four handlers run at most once per frame instead of once per event.
