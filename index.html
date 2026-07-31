@@ -606,12 +606,32 @@ class Component extends DCLogic {
   }
 
   _skyRef = (el) => { if (el) { this._sky = el; this._loadSky(); } };
+  // Which drawing to fetch. Decided before the request goes out, not after: the whole
+  // point is that a phone never downloads the 259KB asset at all. The lite file keeps
+  // every landmark and draws itself exactly the same way, it just carries ~43% fewer
+  // paths - the dropped ones are sub-pixel at these viewports.
+  _skyTier() {
+    if (this._tier) return this._tier;
+    const narrow = window.matchMedia && window.matchMedia('(max-width: 900px)').matches;
+    const lowMem = typeof navigator.deviceMemory === 'number' && navigator.deviceMemory <= 4;
+    const conn = navigator.connection || {};
+    const thrifty = !!conn.saveData || /^(slow-)?2g$/.test(conn.effectiveType || '');
+    this._tier = (narrow || lowMem || thrifty) ? 'lite' : 'full';
+    return this._tier;
+  }
   _loadSky() {
     const host = this._sky;
     if (!host) return;
     if (host._loaded) { this._adoptSky(); return; }
     host._loaded = true;
-    fetch('assets/colombo-skyline.svg').then((r) => r.text()).then((txt) => {
+    const lite = this._skyTier() === 'lite';
+    const file = lite ? 'assets/colombo-skyline-lite.svg' : 'assets/colombo-skyline.svg';
+    // Decorative art must not compete with first paint. Idle callback where available,
+    // a timeout otherwise, both after the current frame has had its chance to render.
+    const defer = window.requestIdleCallback
+      ? (fn) => window.requestIdleCallback(fn, { timeout: 2000 })
+      : (fn) => setTimeout(fn, 200);
+    defer(() => fetch(file).then((r) => r.text()).then((txt) => {
       host.innerHTML = txt;
       const svg = host.querySelector('svg');
       if (!svg) return;
@@ -627,14 +647,21 @@ class Component extends DCLogic {
       // so it keeps the full 749.7-unit height and the spire stays whole.
       const tower = this._bands.find((b) => b.tower);
       if (tower) {
-        const clone = svg.cloneNode(true);
+        // Shallow-clone the root and move in a copy of the tower group alone. Deep-cloning
+        // the whole drawing and deleting nine of ten groups allocated every node in the
+        // file to keep 78 of them. The artwork has no transforms anywhere, so the group's
+        // coordinates are already absolute in the root viewBox and need no ancestor chain.
+        const clone = svg.cloneNode(false);
         clone.setAttribute('class', 'tower');
-        clone.querySelectorAll('g[data-depth="3"]').forEach((g) => { if (g.id !== tower.el.id) g.remove(); });
-        const kept = clone.querySelector('g[data-depth="3"]');
-        if (kept) {
-          kept.style.color = '#E5A823';
-          kept.querySelectorAll('path').forEach((p) => { p.style.strokeWidth = '0.85'; });
-        }
+        // The ground line (a single full-width path) sits outside every landmark group.
+        // The old deep clone swept it into the tower layer too, so it was stroked twice
+        // and that doubled weight is the horizon the design settled on. Carry it over
+        // deliberately; dropping it here would silently halve the line.
+        svg.querySelectorAll('g[data-depth="2"] > path').forEach((p) => clone.appendChild(p.cloneNode(true)));
+        const kept = tower.el.cloneNode(true);
+        kept.style.color = '#E5A823';
+        kept.querySelectorAll('path').forEach((p) => { p.style.strokeWidth = '0.85'; });
+        clone.appendChild(kept);
         host.appendChild(clone);
         tower.el.style.display = 'none';
       }
@@ -652,7 +679,7 @@ class Component extends DCLogic {
       }
       if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => this._fitTower());
       this._paintSky();
-    }).catch(() => {});
+    }).catch(() => {}));
   }
   _adoptSky() {
     // A remount reuses the already-populated host: pick the groups back up so the
