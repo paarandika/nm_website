@@ -25,11 +25,15 @@ const SHELL = path.join(ROOT, 'shell.html');
 // absent: Vercel reads it from the repo root, and a copy here would be served publicly.
 const COPY = ['support.js', 'robots.txt', 'assets', 'vendor'];
 
+// Newlines are normalised before hashing. With core.autocrlf the working tree is CRLF and
+// the git index is LF, so hashing raw bytes makes a Windows checkout and a Linux CI clone
+// disagree about an identical file - which is exactly how this guard first fired.
 function templateHash(src) {
   const start = src.indexOf('<x-dc>');
   const end = src.indexOf('</x-dc>');
   if (start < 0 || end < 0) throw new Error('index.html has no <x-dc> block');
-  return crypto.createHash('sha256').update(src.slice(start, end)).digest('hex').slice(0, 16);
+  const template = src.slice(start, end).replace(/\r\n/g, '\n');
+  return crypto.createHash('sha256').update(template).digest('hex').slice(0, 16);
 }
 
 function copyInto(src, dest) {
@@ -43,30 +47,45 @@ function copyInto(src, dest) {
   }
 }
 
-function main() {
-  const src = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
-  if (!fs.existsSync(SHELL)) {
-    throw new Error('shell.html is missing - run `npm run snapshot` and commit the result');
-  }
+/**
+ * The shell if it is usable, or null with a reason logged.
+ *
+ * Deliberately never fatal. The site renders itself on the client; the shell only brings
+ * first paint forward and hands body copy to crawlers that do not run JS. Shipping without
+ * it costs a few hundred milliseconds - refusing to deploy costs the whole site, which is
+ * the worse failure by a wide margin. A stale shell *is* still rejected, because painting
+ * copy that then changes under the reader is worse than painting nothing; it is just
+ * rejected by dropping the shell rather than by killing the build.
+ */
+function loadShell(src) {
+  const skip = (why) => { console.warn(`warning: no prerendered shell - ${why}`); return null; };
+
+  if (!fs.existsSync(SHELL)) return skip('shell.html is missing. Run `npm run snapshot`.');
   const raw = fs.readFileSync(SHELL, 'utf8');
 
-  // A shell captured from an older template would serve stale copy to crawlers and paint
-  // content that then changes under the reader. Fail rather than ship that quietly.
   const stamped = /template ([0-9a-f]{16})/.exec(raw);
   const current = templateHash(src);
-  if (!stamped) throw new Error('shell.html has no template stamp - regenerate it with `npm run snapshot`');
+  if (!stamped) return skip('shell.html has no template stamp. Run `npm run snapshot`.');
   if (stamped[1] !== current) {
-    throw new Error(
-      `shell.html is stale: built from template ${stamped[1]}, index.html is now ${current}. ` +
+    return skip(
+      `shell.html is stale (built from ${stamped[1]}, index.html is now ${current}). ` +
       'Run `npm run snapshot` and commit the result.'
     );
   }
 
   const shell = raw.replace(/^<!--[^]*?-->\n?/, '').trim();
-  if (!shell) throw new Error('shell.html is empty');
-  if (shell.includes('{{')) throw new Error('shell.html has unresolved {{ }} bindings');
+  if (!shell) return skip('shell.html is empty. Run `npm run snapshot`.');
+  if (shell.includes('{{')) return skip('shell.html has unresolved {{ }} bindings.');
+  return shell;
+}
 
-  const out = src.replace('<x-dc>', `<div id="pre-shell">${shell}</div>\n<x-dc>`);
+function main() {
+  const src = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+  const shell = loadShell(src);
+
+  const out = shell
+    ? src.replace('<x-dc>', `<div id="pre-shell">${shell}</div>\n<x-dc>`)
+    : src;
 
   // Empty the directory rather than removing it: on Windows anything with the folder
   // open (a dev server serving dist/, an editor) holds a handle and rmdir fails EBUSY.
@@ -95,7 +114,7 @@ function main() {
     }
   }
 
-  console.log(`shell.html:      ${(shell.length / 1024).toFixed(0)} KB (template ${current})`);
+  console.log(`shell.html:      ${shell ? `${(shell.length / 1024).toFixed(0)} KB` : 'none (client-rendered)'}`);
   console.log(`forbidden:       ${forbidden.length} strings checked, none present`);
   console.log(`dist/index.html: ${(built.length / 1024).toFixed(0)} KB`);
 }

@@ -52,12 +52,17 @@ function findChrome() {
   );
 }
 
-/** Hash of the template the shell was rendered from, so the build can spot staleness. */
+/**
+ * Hash of the template the shell was rendered from, so the build can spot staleness.
+ * Must stay byte-for-byte identical to the copy in tools/build.js - including the newline
+ * normalisation, without which a CRLF working tree and an LF CI clone disagree.
+ */
 function templateHash(src) {
   const start = src.indexOf('<x-dc>');
   const end = src.indexOf('</x-dc>');
   if (start < 0 || end < 0) throw new Error('index.html has no <x-dc> block');
-  return crypto.createHash('sha256').update(src.slice(start, end)).digest('hex').slice(0, 16);
+  const template = src.slice(start, end).replace(/\r\n/g, '\n');
+  return crypto.createHash('sha256').update(template).digest('hex').slice(0, 16);
 }
 
 function serve() {
