@@ -9,6 +9,15 @@
   // restore stays pending and fires once content appears, reading as a stray scroll.
   // Must run before the runtime, hence inline here.
   if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+
+  // support.js resolves its React URLs through this map before falling back to unpkg
+  // (see cdnScriptFor). Serving them from our own origin removes a third-party DNS+TLS
+  // handshake from the critical path, and a CDN outage can no longer leave a blank page.
+  // The vendored files' SHA-384 digests match the SRI constants support.js expects.
+  window.__resources = {
+    'https://unpkg.com/react@18.3.1/umd/react.production.min.js': 'vendor/react.production.min.js',
+    'https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js': 'vendor/react-dom.production.min.js'
+  };
 </script>
 <script src="./support.js"></script>
 </head>
@@ -868,6 +877,12 @@ class Component extends DCLogic {
     else window.scrollTo({ top: 0, behavior: 'instant' });
   }
   componentDidMount() {
+    // The build inserts a prerendered copy of this page ahead of <x-dc> so there is
+    // something to paint (and something for a crawler to read) before React mounts.
+    // Drop it first, before anything below queries the DOM: while it exists the page
+    // has two of several elements and getElementById would answer with the inert one.
+    const shell = document.getElementById('pre-shell');
+    if (shell) shell.remove();
     this._settleScroll();
     this._loadTeam();
     this._loadSky();

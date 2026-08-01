@@ -1,0 +1,13 @@
+{
+  "name": "noesis-machines-site",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Static marketing site. Source is index.html; the build only adds a prerendered shell.",
+  "scripts": {
+    "build": "node tools/prerender.js",
+    "dev": "python tools/serve.py 8000 ."
+  },
+  "devDependencies": {
+    "puppeteer": "^24.15.0"
+  }
+}
