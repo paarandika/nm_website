@@ -1,9 +1,13 @@
+# NOTE: this excludes files from the source upload, which is also the build environment.
+# Anything the build itself needs must NOT be listed here. tools/ in particular holds
+# prerender.js, which is what `npm run build` runs - excluding it breaks the deploy.
+#
+# What actually reaches the public is dist/ (vercel.json outputDirectory), so source
+# files are not served regardless of what is listed below.
+
 # Internal notes. docs/optimization-plan.md describes how founder names are kept out of
-# the index, which would be a roadmap to them if published — keep it out of the deploy.
+# the index, which would be a roadmap to them if published.
 docs/
 
 # Local-only responsive test harness (see docs/optimization-plan.md, Working practice).
 _probe.html
-
-# Asset generator, not part of the deployed site.
-tools/
