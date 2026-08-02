@@ -135,6 +135,24 @@ function main() {
   if (!image || !/^https:\/\//.test(image[1])) {
     throw new Error('og:image must be an absolute https URL - scrapers cannot resolve a relative one');
   }
+
+  // The apex redirects to www. A card URL on the wrong host still resolves in a browser,
+  // so this is invisible in testing, but WhatsApp is unreliable about following a redirect
+  // for og:image and a canonical pointing at a redirect wastes the signal. Every absolute
+  // URL in <head> must sit on one origin.
+  const canonical = /rel="canonical" href="([^"]+)"/.exec(head);
+  if (!canonical) throw new Error('<head> has no rel=canonical');
+  const origin = new URL(canonical[1]).origin;
+  for (const [what, url] of [
+    ['og:url', /property="og:url" content="([^"]+)"/.exec(head)],
+    ['og:image', image],
+    ['twitter:image', /name="twitter:image" content="([^"]+)"/.exec(head)]
+  ]) {
+    if (!url) throw new Error(`<head> has no ${what}`);
+    if (new URL(url[1]).origin !== origin) {
+      throw new Error(`${what} is on ${new URL(url[1]).origin}, canonical is ${origin} - pick one host`);
+    }
+  }
   const card = path.join(DIST, new URL(image[1]).pathname.replace(/^\//, ''));
   if (!fs.existsSync(card)) {
     throw new Error(`og:image points at ${image[1]} but ${path.relative(DIST, card)} is not in dist/`);
