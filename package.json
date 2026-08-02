@@ -5,6 +5,7 @@
   "description": "Static marketing site. Source is index.html; the build only adds a prerendered shell.",
   "scripts": {
     "snapshot": "node tools/snapshot.js",
+    "og": "node tools/og-image.js",
     "build": "node tools/build.js",
     "dev": "python tools/serve.py 8000 ."
   },

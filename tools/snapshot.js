@@ -25,6 +25,7 @@ const http = require('http');
 const os = require('os');
 const path = require('path');
 const { JSDOM } = require('jsdom');
+const { findChrome } = require('./chrome');
 
 const ROOT = path.resolve(__dirname, '..');
 const OUT = path.join(ROOT, 'shell.html');
@@ -34,23 +35,6 @@ const TYPES = {
   '.html': 'text/html', '.js': 'text/javascript', '.json': 'application/json',
   '.svg': 'image/svg+xml', '.css': 'text/css', '.txt': 'text/plain'
 };
-
-const CHROME_CANDIDATES = [
-  process.env.CHROME_PATH,
-  'C:/Program Files/Google/Chrome/Application/chrome.exe',
-  'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe',
-  '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
-  '/usr/bin/google-chrome',
-  '/usr/bin/chromium',
-  '/usr/bin/chromium-browser'
-].filter(Boolean);
-
-function findChrome() {
-  for (const p of CHROME_CANDIDATES) if (fs.existsSync(p)) return p;
-  throw new Error(
-    'no Chrome found. Set CHROME_PATH to your browser binary, or install Google Chrome.'
-  );
-}
 
 /**
  * Hash of the template the shell was rendered from, so the build can spot staleness.

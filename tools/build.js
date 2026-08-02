@@ -114,7 +114,34 @@ function main() {
     }
   }
 
+  // Link-preview scrapers do not run scripts and only read <head>. If these tags drift
+  // back into the <helmet> block - where the rest of the page's head content lives, so it
+  // is an easy mistake - support.js would still place them at runtime and every browser
+  // would look fine, while every pasted link silently lost its card. Assert on position,
+  // not just presence.
+  const head = built.slice(0, built.indexOf('</head>'));
+  const required = [
+    'og:title', 'og:description', 'og:image', 'og:url',
+    'twitter:card', '<title>', 'name="description"'
+  ];
+  const missing = required.filter((tag) => !head.includes(tag));
+  if (missing.length) {
+    throw new Error(
+      `dist/index.html is missing ${missing.join(', ')} from <head>. Scrapers do not run ` +
+      'JavaScript, so these cannot live in the <helmet> block.'
+    );
+  }
+  const image = /property="og:image" content="([^"]+)"/.exec(head);
+  if (!image || !/^https:\/\//.test(image[1])) {
+    throw new Error('og:image must be an absolute https URL - scrapers cannot resolve a relative one');
+  }
+  const card = path.join(DIST, new URL(image[1]).pathname.replace(/^\//, ''));
+  if (!fs.existsSync(card)) {
+    throw new Error(`og:image points at ${image[1]} but ${path.relative(DIST, card)} is not in dist/`);
+  }
+
   console.log(`shell.html:      ${shell ? `${(shell.length / 1024).toFixed(0)} KB` : 'none (client-rendered)'}`);
+  console.log(`preview card:    ${(fs.statSync(card).size / 1024).toFixed(0)} KB at ${image[1]}`);
   console.log(`forbidden:       ${forbidden.length} strings checked, none present`);
   console.log(`dist/index.html: ${(built.length / 1024).toFixed(0)} KB`);
 }

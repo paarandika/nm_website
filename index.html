@@ -3,6 +3,42 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- These live in the real <head>, not in the <helmet> block below, and that placement is
+     the whole point. support.js copies <helmet> into <head> from JavaScript (see
+     createHelmetManager), so anything left in there is invisible to clients that do not
+     run scripts - which is every link-preview scraper: WhatsApp, iMessage, Slack,
+     LinkedIn, X. Link cards, and the page title in a no-JS fetch, depend on these bytes
+     being here in the served HTML.
+
+     Absolute URLs are required, not stylistic: scrapers resolve og:image against nothing. -->
+<title>Noesis Machines — Deep AI for the real world</title>
+<meta name="description" content="Deep AI research and engineering for the industries, languages, and realities of South Asia. Industrial visual AI, deep domain AI, Sinhala language AI, and sensor-integrated systems. Colombo, Sri Lanka.">
+<link rel="canonical" href="https://noesismachines.ai/">
+<meta name="theme-color" content="#F1EEE6">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Noesis Machines">
+<meta property="og:url" content="https://noesismachines.ai/">
+<meta property="og:title" content="Noesis Machines — Deep AI for the real world">
+<meta property="og:description" content="Deep AI research and engineering for the industries, languages, and realities of South Asia. Not API wrappers, not repackaged generic models. Colombo, Sri Lanka.">
+<meta property="og:image" content="https://noesismachines.ai/assets/og-card.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Noesis Machines — machines that know. Colombo skyline line drawing.">
+<meta property="og:locale" content="en_US">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Noesis Machines — Deep AI for the real world">
+<meta name="twitter:description" content="Deep AI research and engineering for the industries, languages, and realities of South Asia. Not API wrappers, not repackaged generic models. Colombo, Sri Lanka.">
+<meta name="twitter:image" content="https://noesismachines.ai/assets/og-card.png">
+<meta name="twitter:image:alt" content="Noesis Machines — machines that know. Colombo skyline line drawing.">
+
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;family=Geist:wght@400;500&amp;family=Geist+Mono:wght@400;500&amp;display=swap">
 <script>
   // The page stays display:none until React mounts, so at load the document has no
   // height for the browser to restore a saved scroll position into. Left on 'auto' that
@@ -24,12 +60,6 @@
 <body>
 <x-dc>
 <helmet>
-<title>Noesis Machines — Deep AI for the real world</title>
-<meta name="description" content="Deep AI research and engineering for the industries, languages, and realities of South Asia. Industrial visual AI, deep domain AI, Sinhala language AI, and sensor-integrated systems. Colombo, Sri Lanka.">
-<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;family=Geist:wght@400;500&amp;family=Geist+Mono:wght@400;500&amp;display=swap">
 <style>
   /* Carried over from the design-system stylesheet this file used to load. The tokens in
      it were unused, but the reset is load-bearing: #top is height:calc(100svh - 71px)
