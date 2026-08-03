@@ -3,6 +3,7 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "cleanUrls": true,
+  "_comment_rewrites": "Paths are extensionless because cleanUrls 308s /index-wa.html to /index-wa; the regex avoids the (?i) inline flag, which is a syntax error in JS and silently drops the rule.",
   "rewrites": [
     {
       "source": "/",
@@ -10,15 +11,15 @@
         {
           "type": "header",
           "key": "user-agent",
-          "value": "(?i).*whatsapp.*"
+          "value": ".*[Ww]hats[Aa]pp.*"
         }
       ],
-      "destination": "/index-wa.html"
+      "destination": "/index-wa"
     }
   ],
   "headers": [
     {
-      "source": "/index-wa.html",
+      "source": "/index-wa",
       "headers": [
         {
           "key": "X-Robots-Tag",
