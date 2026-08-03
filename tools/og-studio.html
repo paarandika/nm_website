@@ -114,6 +114,10 @@
 </div>
 
 <div id="panel">
+  <h2>Load a card</h2>
+  <div class="seg" id="presets"></div>
+  <p class="hint">The two cards currently in tools/og-image.js. Edit either, then Copy config.</p>
+
   <h2>Canvas</h2>
   <div class="seg" id="ratios"></div>
   <label><span>Zoom <b id="zoomV"></b></span><input type="range" id="zoom" min="20" max="100" value="46"></label>
@@ -126,9 +130,13 @@
   <label><span>Eyebrow size <b id="esV"></b></span><input type="range" id="es" min="10" max="34" value="16"></label>
   <label><span>Eyebrow gap <b id="egV"></b></span><input type="range" id="eg" min="0" max="80" value="20"></label>
   <input type="text" id="eyeTxt">
+  <label style="margin-top:11px"><span>Hero H <b id="textXV"></b></span><input type="range" id="textX" min="-300"></label>
+  <label><span>Hero V <b id="textYV"></b></span><input type="range" id="textY" min="-300"></label>
 
   <h2>Wordmark</h2>
   <label><span>Size <b id="lwV"></b></span><input type="range" id="lw" min="120" max="760" value="300"></label>
+  <label><span>Mark H <b id="lockXV"></b></span><input type="range" id="lockX" min="-300"></label>
+  <label><span>Mark V <b id="lockYV"></b></span><input type="range" id="lockY" min="-300"></label>
   <div class="seg" id="lockMode"></div>
 
   <h2>Skyline</h2>
@@ -141,6 +149,8 @@
 
   <h2>Footer</h2>
   <label><span>Size <b id="fsV"></b></span><input type="range" id="fs" min="12" max="40" value="19"></label>
+  <label><span>Footer H <b id="footXV"></b></span><input type="range" id="footX" min="-300"></label>
+  <label><span>Footer V <b id="footYV"></b></span><input type="range" id="footY" min="-300"></label>
 
   <h2>View</h2>
   <div class="row" style="margin-bottom:10px">
@@ -162,16 +172,30 @@
 
 <script>
 const RATIOS = { '1:1': [1200, 1200], '1.91:1': [1200, 628], '4:5': [1080, 1350] };
-const DEFAULTS = {
-  ratio: '1:1',
-  copy: 'Machines\nthat *know.*',
-  eyebrow: 'Deep AI · Research · Bespoke AI solutions',
-  hs: 112, lh: 100, es: 16, eg: 20, fs: 19,
-  lw: 300, lockMode: 'full',
-  sw: 100, sx: 0, sy: 0, st: 55, ft: 34, fe: 74,
-  lock: { x: 72, y: 64 }, text: { x: 72, y: 300 }, foot: { x: 72, y: 1090 }
+// Kept in step with CARDS in tools/og-image.js by hand - these are what is on disk now,
+// so "Social" and "WhatsApp" open the real cards rather than a blank starting point.
+const PRESETS = {
+  Social: {
+    ratio: '1.91:1',
+    copy: 'Machines that *know.*',
+    eyebrow: 'Deep AI · Research · Bespoke AI solutions',
+    hs: 122, lh: 109, es: 23, eg: 20, fs: 30,
+    lw: 429, lockMode: 'full',
+    sw: 97, sx: 120, sy: 3, st: 96, ft: 0, fe: 27,
+    lock: { x: 72, y: 64 }, text: { x: 72, y: 253 }, foot: { x: 72, y: 568 }
+  },
+  WhatsApp: {
+    ratio: '1:1',
+    copy: 'Machines\nthat *know.*',
+    eyebrow: 'Deep AI · Research · Bespoke AI solutions',
+    hs: 204, lh: 109, es: 23, eg: 20, fs: 25,
+    lw: 503, lockMode: 'full',
+    sw: 112, sx: 35, sy: 3, st: 65, ft: 0, fe: 10,
+    lock: { x: 72, y: 64 }, text: { x: 72, y: 300 }, foot: { x: 72, y: 1090 }
+  }
 };
-let S = structuredClone(DEFAULTS);
+
+let S = structuredClone(PRESETS.WhatsApp);
 
 const $ = (id) => document.getElementById(id);
 const frame = $('frame');
@@ -226,6 +250,18 @@ function render() {
     $(id).style.top = p.y + 'px';
   }
 
+  // Position sliders are re-read from state on every render, so dragging on the canvas
+  // moves them too - the two ways of nudging a block stay one value, not two. Setting
+  // .value programmatically does not fire 'input', so this cannot loop.
+  for (const key of ['lock', 'text', 'foot']) {
+    for (const axis of ['x', 'y']) {
+      const el = $(key + axis.toUpperCase());
+      el.max = axis === 'x' ? w : h;
+      el.value = S[key][axis];
+      $(key + axis.toUpperCase() + 'V').textContent = S[key][axis] + 'px';
+    }
+  }
+
   // The drawing has ~30.6 units of blank canvas below its horizon (viewBox 749.7, ground
   // at 719.1). Pull that off the bottom so the horizon lands on the card edge, then let
   // the vertical slider move it from there.
@@ -270,6 +306,12 @@ function bindSliders() {
     $('zoomV').textContent = $('zoom').value + '%';
     render();
   });
+  for (const key of ['lock', 'text', 'foot']) {
+    for (const axis of ['x', 'y']) {
+      const el = $(key + axis.toUpperCase());
+      el.addEventListener('input', () => { S[key][axis] = +el.value; render(); });
+    }
+  }
 }
 function syncInputs() {
   for (const k of SLIDERS) {
@@ -327,6 +369,13 @@ for (const name of Object.keys(RATIOS)) {
   };
   $('ratios').appendChild(b);
 }
+for (const name of Object.keys(PRESETS)) {
+  const b = document.createElement('button');
+  b.textContent = name;
+  b.dataset.preset = name;
+  b.onclick = () => { S = structuredClone(PRESETS[name]); syncInputs(); render(); };
+  $('presets').appendChild(b);
+}
 for (const [mode, label] of [['full', 'Lockup'], ['mark', 'Mark only'], ['off', 'Hide']]) {
   const b = document.createElement('button');
   b.textContent = label;
@@ -338,7 +387,7 @@ $('copy').addEventListener('input', () => { S.copy = $('copy').value; render(); 
 $('eyeTxt').addEventListener('input', () => { S.eyebrow = $('eyeTxt').value; render(); });
 $('tg').onclick = () => $('guides').classList.toggle('on');
 $('bare').onclick = () => document.body.classList.toggle('bare');
-$('reset').onclick = () => { S = structuredClone(DEFAULTS); syncInputs(); render(); };
+$('reset').onclick = () => { S = structuredClone(PRESETS[S.ratio === '1:1' ? 'WhatsApp' : 'Social']); syncInputs(); render(); };
 $('copyBtn').onclick = async () => {
   await navigator.clipboard.writeText(JSON.stringify(S, null, 1));
   $('copyBtn').textContent = 'Copied';

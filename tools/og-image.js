@@ -27,7 +27,6 @@ const path = require('path');
 const { findChrome } = require('./chrome');
 
 const ROOT = path.resolve(__dirname, '..');
-const OUT = path.join(ROOT, 'assets', 'og-card.png');
 
 // WhatsApp is the strictest consumer of this file: past roughly this size it quietly
 // declines to show a preview at all. Asserted after rendering rather than hoped for.
@@ -43,27 +42,43 @@ const MUTED = '#6B6E85';
 const RATIOS = { '1:1': [1200, 1200], '1.91:1': [1200, 628], '4:5': [1080, 1350] };
 
 // ---- pasted from the studio -------------------------------------------------------
-const CONFIG = {
-  ratio: '1:1',
-  copy: 'Machines\nthat *know.*',
-  eyebrow: 'Deep AI · Research · Bespoke AI solutions',
-  hs: 204,
-  lh: 109,
-  es: 23,
-  eg: 20,
-  fs: 25,
-  lw: 503,
-  lockMode: 'full',
-  sw: 112,
-  sx: 35,
-  sy: 3,
-  st: 65,
-  ft: 0,
-  fe: 10,
-  lock: { x: 72, y: 64 },
-  text: { x: 72, y: 300 },
-  foot: { x: 72, y: 1090 }
-};
+// Two cards, because the platforms crop in opposite directions and no single frame
+// survives both: WhatsApp crops a wide card inwards to a square and loses the ends of
+// the headline; Facebook, LinkedIn and X crop a square card down to 1.91:1 and lose the
+// wordmark and the footer. Which one a visitor's scraper gets is decided by the
+// User-Agent rewrite in vercel.json.
+const CARDS = [
+  {
+    // Default. Facebook, LinkedIn, Slack, iMessage, X.
+    out: 'og-card.png',
+    config: {
+      ratio: '1.91:1',
+      copy: 'Machines that *know.*',
+      eyebrow: 'Deep AI · Research · Bespoke AI solutions',
+      hs: 122, lh: 109, es: 23, eg: 20, fs: 30,
+      lw: 429, lockMode: 'full',
+      sw: 97, sx: 120, sy: 3, st: 96, ft: 0, fe: 27,
+      lock: { x: 72, y: 64 },
+      text: { x: 72, y: 253 },
+      foot: { x: 72, y: 568 }
+    }
+  },
+  {
+    // WhatsApp only.
+    out: 'og-card-square.png',
+    config: {
+      ratio: '1:1',
+      copy: 'Machines\nthat *know.*',
+      eyebrow: 'Deep AI · Research · Bespoke AI solutions',
+      hs: 204, lh: 109, es: 23, eg: 20, fs: 25,
+      lw: 503, lockMode: 'full',
+      sw: 112, sx: 35, sy: 3, st: 65, ft: 0, fe: 10,
+      lock: { x: 72, y: 64 },
+      text: { x: 72, y: 300 },
+      foot: { x: 72, y: 1090 }
+    }
+  }
+];
 // -----------------------------------------------------------------------------------
 
 /** `*word*` marks saffron italic, matching the studio's headline box. */
@@ -180,7 +195,10 @@ function screenshot(chrome, file, out, w, h) {
     child.on('error', (err) => { clearTimeout(timer); reject(err); });
     child.on('close', (code) => {
       clearTimeout(timer);
-      fs.rmSync(profile, { recursive: true, force: true });
+      // Chrome can still hold CrashpadMetrics-active.pma for a moment after exit, and on
+      // Windows that makes the unlink EPERM. This is a temp directory the OS will reap;
+      // failing to remove it must not fail a card that rendered fine.
+      try { fs.rmSync(profile, { recursive: true, force: true }); } catch {}
       // Chrome exits non-zero on some Windows builds even after writing the file, so the
       // screenshot's existence is the real success signal.
       if (!fs.existsSync(out)) reject(new Error(`no screenshot written (browser exited ${code})`));
@@ -190,30 +208,34 @@ function screenshot(chrome, file, out, w, h) {
 }
 
 async function main() {
-  const size = RATIOS[CONFIG.ratio];
-  if (!size) throw new Error(`unknown ratio ${CONFIG.ratio} - expected one of ${Object.keys(RATIOS)}`);
-  const [w, h] = size;
-
   const chrome = findChrome();
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'nm-og-src-'));
-  const file = path.join(dir, 'card.html');
-  fs.writeFileSync(file, card(CONFIG, w, h));
+  console.log(`browser: ${chrome}`);
 
   try {
-    await screenshot(chrome, file, OUT, w, h);
-    const bytes = fs.statSync(OUT).size;
-    if (bytes > MAX_BYTES) {
-      throw new Error(
-        `og-card.png is ${(bytes / 1024).toFixed(0)} KB, over the ${MAX_BYTES / 1024} KB ` +
-        'budget - WhatsApp may drop it. Simplify the card or shrink the skyline.'
-      );
+    for (const { out, config } of CARDS) {
+      const size = RATIOS[config.ratio];
+      if (!size) {
+        throw new Error(`unknown ratio ${config.ratio} - expected one of ${Object.keys(RATIOS)}`);
+      }
+      const [w, h] = size;
+      const file = path.join(dir, `${out}.html`);
+      const target = path.join(ROOT, 'assets', out);
+      fs.writeFileSync(file, card(config, w, h));
+      await screenshot(chrome, file, target, w, h);
+
+      const bytes = fs.statSync(target).size;
+      if (bytes > MAX_BYTES) {
+        throw new Error(
+          `${out} is ${(bytes / 1024).toFixed(0)} KB, over the ${MAX_BYTES / 1024} KB budget ` +
+          '- WhatsApp may drop it. Simplify the card or shrink the skyline.'
+        );
+      }
+      console.log(`  ${out.padEnd(22)} ${String(bytes / 1024 | 0).padStart(4)} KB   ${w}x${h}`);
     }
-    console.log(`browser:     ${chrome}`);
-    console.log(`og-card.png: ${(bytes / 1024).toFixed(0)} KB (${w}x${h}, ${CONFIG.ratio})`);
-    console.log(`next:        og:image:width/height in index.html must say ${w} and ${h}`);
-    console.log('             (npm run build fails if they disagree, so this is checked).');
+    console.log('\ncommit the PNGs. `npm run build` checks the declared dimensions match.');
   } finally {
-    fs.rmSync(dir, { recursive: true, force: true });
+    try { fs.rmSync(dir, { recursive: true, force: true }); } catch {}
   }
 }
 
