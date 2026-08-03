@@ -99,6 +99,30 @@ function checkCard(built, file) {
       'JavaScript, so these cannot live in the <helmet> block.'
     );
   }
+  // Descriptions are truncated at a different width by every consumer - WhatsApp cuts
+  // around 80 characters, LinkedIn ~150, Google ~155. A warning rather than an error: an
+  // over-long description still produces a card, it just trails off mid-clause, and that
+  // is a judgement call about copy rather than a broken build.
+  for (const [what, re, limit] of [
+    ['description', /name="description" content="([^"]+)"/, 155],
+    ['og:description', /property="og:description" content="([^"]+)"/, 155],
+    ['twitter:description', /name="twitter:description" content="([^"]+)"/, 155]
+  ]) {
+    const found = re.exec(head);
+    if (!found) continue;
+    const text = found[1];
+    if (text.length > limit) {
+      console.warn(`warning: ${what} is ${text.length} chars, over ${limit} - it will be cut off`);
+    }
+    const first = /^[^.]*\./.exec(text);
+    if (first && first[0].length > 80) {
+      console.warn(
+        `warning: ${what} opens with a ${first[0].length}-char sentence - WhatsApp shows ` +
+        'about 80, so it will be cut mid-sentence. Front-load a shorter first sentence.'
+      );
+    }
+  }
+
   const image = /property="og:image" content="([^"]+)"/.exec(head);
   if (!image || !/^https:\/\//.test(image[1])) {
     throw new Error(`${file}: og:image must be an absolute https URL - scrapers cannot resolve a relative one`);
