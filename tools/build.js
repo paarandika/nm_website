@@ -114,7 +114,11 @@ function checkCard(built, file) {
     if (text.length > limit) {
       console.warn(`warning: ${what} is ${text.length} chars, over ${limit} - it will be cut off`);
     }
-    const first = /^[^.]*\./.exec(text);
+    // A colon counts as a boundary alongside a full stop: "<positioning>: <list>" is cut
+    // by WhatsApp just as gracefully as two sentences, provided the part before the colon
+    // stands on its own. What matters is that something complete lands inside the first
+    // ~80 characters, not which mark ends it.
+    const first = /^[^.:]*[.:]/.exec(text);
     if (first && first[0].length > 80) {
       console.warn(
         `warning: ${what} opens with a ${first[0].length}-char sentence - WhatsApp shows ` +
