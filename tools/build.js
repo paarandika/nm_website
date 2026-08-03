@@ -31,6 +31,15 @@ const COPY = ['support.js', 'robots.txt', 'assets', 'vendor'];
 // survives both. The way out is to serve a second copy of the page whose only difference
 // is which card it points at, and let the User-Agent rewrite in vercel.json pick. This
 // page is noindex'd there; it is a duplicate of the real one.
+// Two things about that rewrite are easy to get wrong and fail silently, and vercel.json
+// cannot carry a comment saying so - its schema rejects unknown keys:
+//
+//   - `has[].value` compiles as a JS RegExp, which has no inline flags. `(?i)` is a
+//     SyntaxError there and Vercel drops the whole rule without a word, so the pattern
+//     spells its own case-insensitivity: `.*[Ww]hats[Aa]pp.*`.
+//   - `cleanUrls` 308s /index-wa.html to /index-wa, so the rewrite destination and the
+//     X-Robots-Tag header source both name the extensionless path. Pointing either at the
+//     .html form aims it at a redirect.
 const WA_PAGE = 'index-wa.html';
 const WA_CARD = 'og-card-square.png';
 

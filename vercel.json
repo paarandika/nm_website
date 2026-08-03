@@ -3,7 +3,6 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "cleanUrls": true,
-  "_comment_rewrites": "Paths are extensionless because cleanUrls 308s /index-wa.html to /index-wa; the regex avoids the (?i) inline flag, which is a syntax error in JS and silently drops the rule.",
   "rewrites": [
     {
       "source": "/",
