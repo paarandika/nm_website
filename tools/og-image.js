@@ -13,9 +13,10 @@
  * right, paste the result over CONFIG, run `npm run og`. The two files render from the
  * same numbers by the same rules, so what the studio shows is what the PNG contains.
  *
- * Square, not the usual 1.91:1: WhatsApp centre-crops link previews towards a square on
- * most clients, which lopped the ends off a 1200x630 headline. The card is built at the
- * ratio the worst-behaved consumer will actually show.
+ * 1.91:1, but laid out for a squarer crop than that: WhatsApp centre-crops link previews
+ * inwards on most clients, so the headline, wordmark and footer are kept within the
+ * central square rather than running to the card's full width. The studio draws that
+ * square as red rails - anything outside them is content only some platforms will show.
  *
  * The card uses the site's own palette, wordmark and skyline so the preview and the page
  * a reader lands on look like the same thing.
@@ -42,14 +43,12 @@ const MUTED = '#6B6E85';
 const RATIOS = { '1:1': [1200, 1200], '1.91:1': [1200, 628], '4:5': [1080, 1350] };
 
 // ---- pasted from the studio -------------------------------------------------------
-// Two cards, because the platforms crop in opposite directions and no single frame
-// survives both: WhatsApp crops a wide card inwards to a square and loses the ends of
-// the headline; Facebook, LinkedIn and X crop a square card down to 1.91:1 and lose the
-// wordmark and the footer. Which one a visitor's scraper gets is decided by the
-// User-Agent rewrite in vercel.json.
+// One card at 1.91:1, which every consumer handles acceptably - WhatsApp included. An
+// earlier arrangement shipped a second square card and picked between them with a
+// User-Agent rewrite; that turned out not to be worth its weight once the wide card was
+// laid out with WhatsApp's inward crop in mind.
 const CARDS = [
   {
-    // Default. Facebook, LinkedIn, Slack, iMessage, X.
     out: 'og-card.png',
     config: {
       ratio: '1.91:1',
@@ -61,21 +60,6 @@ const CARDS = [
       lock: { x: 72, y: 64 },
       text: { x: 72, y: 253 },
       foot: { x: 72, y: 568 }
-    }
-  },
-  {
-    // WhatsApp only.
-    out: 'og-card-square.png',
-    config: {
-      ratio: '1:1',
-      copy: 'Machines\nthat *know.*',
-      eyebrow: 'Deep AI · Research · Bespoke AI solutions',
-      hs: 204, lh: 109, es: 23, eg: 20, fs: 25,
-      lw: 503, lockMode: 'full',
-      sw: 112, sx: 35, sy: 3, st: 65, ft: 0, fe: 10,
-      lock: { x: 72, y: 64 },
-      text: { x: 72, y: 300 },
-      foot: { x: 72, y: 1090 }
     }
   }
 ];

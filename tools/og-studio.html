@@ -158,7 +158,8 @@
     <button id="bare">Hide panel</button>
   </div>
   <p class="hint">Drag the wordmark, headline block and footer directly on the canvas.
-    The red rails mark the square WhatsApp crops to.</p>
+    The red rails mark the square WhatsApp crops to - keep anything that must survive
+    every platform inside them.</p>
 
   <h2>Export</h2>
   <div class="row" style="margin-bottom:10px">
@@ -172,8 +173,8 @@
 
 <script>
 const RATIOS = { '1:1': [1200, 1200], '1.91:1': [1200, 628], '4:5': [1080, 1350] };
-// Kept in step with CARDS in tools/og-image.js by hand - these are what is on disk now,
-// so "Social" and "WhatsApp" open the real cards rather than a blank starting point.
+// Kept in step with CARDS in tools/og-image.js by hand - this is what is on disk now, so
+// "Social" opens the real card rather than a blank starting point.
 const PRESETS = {
   Social: {
     ratio: '1.91:1',
@@ -183,19 +184,10 @@ const PRESETS = {
     lw: 429, lockMode: 'full',
     sw: 97, sx: 120, sy: 3, st: 96, ft: 0, fe: 27,
     lock: { x: 72, y: 64 }, text: { x: 72, y: 253 }, foot: { x: 72, y: 568 }
-  },
-  WhatsApp: {
-    ratio: '1:1',
-    copy: 'Machines\nthat *know.*',
-    eyebrow: 'Deep AI · Research · Bespoke AI solutions',
-    hs: 204, lh: 109, es: 23, eg: 20, fs: 25,
-    lw: 503, lockMode: 'full',
-    sw: 112, sx: 35, sy: 3, st: 65, ft: 0, fe: 10,
-    lock: { x: 72, y: 64 }, text: { x: 72, y: 300 }, foot: { x: 72, y: 1090 }
   }
 };
 
-let S = structuredClone(PRESETS.WhatsApp);
+let S = structuredClone(PRESETS.Social);
 
 const $ = (id) => document.getElementById(id);
 const frame = $('frame');
@@ -387,7 +379,7 @@ $('copy').addEventListener('input', () => { S.copy = $('copy').value; render(); 
 $('eyeTxt').addEventListener('input', () => { S.eyebrow = $('eyeTxt').value; render(); });
 $('tg').onclick = () => $('guides').classList.toggle('on');
 $('bare').onclick = () => document.body.classList.toggle('bare');
-$('reset').onclick = () => { S = structuredClone(PRESETS[S.ratio === '1:1' ? 'WhatsApp' : 'Social']); syncInputs(); render(); };
+$('reset').onclick = () => { S = structuredClone(PRESETS.Social); syncInputs(); render(); };
 $('copyBtn').onclick = async () => {
   await navigator.clipboard.writeText(JSON.stringify(S, null, 1));
   $('copyBtn').textContent = 'Copied';

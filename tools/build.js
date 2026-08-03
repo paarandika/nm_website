@@ -25,24 +25,6 @@ const SHELL = path.join(ROOT, 'shell.html');
 // absent: Vercel reads it from the repo root, and a copy here would be served publicly.
 const COPY = ['support.js', 'robots.txt', 'assets', 'vendor'];
 
-// og:image is a single tag that WhatsApp, Facebook, LinkedIn and Slack all read, so there
-// is no markup that gives each a different picture. The platforms crop in opposite
-// directions - WhatsApp inwards to a square, the rest down to 1.91:1 - and no one frame
-// survives both. The way out is to serve a second copy of the page whose only difference
-// is which card it points at, and let the User-Agent rewrite in vercel.json pick. This
-// page is noindex'd there; it is a duplicate of the real one.
-// Two things about that rewrite are easy to get wrong and fail silently, and vercel.json
-// cannot carry a comment saying so - its schema rejects unknown keys:
-//
-//   - `has[].value` compiles as a JS RegExp, which has no inline flags. `(?i)` is a
-//     SyntaxError there and Vercel drops the whole rule without a word, so the pattern
-//     spells its own case-insensitivity: `.*[Ww]hats[Aa]pp.*`.
-//   - `cleanUrls` 308s /index-wa.html to /index-wa, so the rewrite destination and the
-//     X-Robots-Tag header source both name the extensionless path. Pointing either at the
-//     .html form aims it at a redirect.
-const WA_PAGE = 'index-wa.html';
-const WA_CARD = 'og-card-square.png';
-
 // Newlines are normalised before hashing. With core.autocrlf the working tree is CRLF and
 // the git index is LF, so hashing raw bytes makes a Windows checkout and a Linux CI clone
 // disagree about an identical file - which is exactly how this guard first fired.
@@ -95,28 +77,6 @@ function loadShell(src) {
   if (!shell) return skip('shell.html is empty. Run `npm run snapshot`.');
   if (shell.includes('{{')) return skip('shell.html has unresolved {{ }} bindings.');
   return shell;
-}
-
-/**
- * The WhatsApp copy of the page: same bytes, different og:image and height. Each swap is
- * asserted, so a change to how the tags are written fails the build here rather than
- * silently producing a variant identical to the original.
- */
-function whatsappVariant(html) {
-  const png = fs.readFileSync(path.join(ROOT, 'assets', WA_CARD));
-  const height = png.readUInt32BE(20);
-
-  const swaps = [
-    ['og:image', /(property="og:image" content="https:\/\/[^"]+\/)og-card\.png"/, `$1${WA_CARD}"`],
-    ['og:image:height', /(property="og:image:height" content=")\d+"/, `$1${height}"`]
-  ];
-  let out = html;
-  for (const [what, find, replace] of swaps) {
-    const next = out.replace(find, replace);
-    if (next === out) throw new Error(`could not rewrite ${what} for ${WA_PAGE} - the tag's shape changed`);
-    out = next;
-  }
-  return out;
 }
 
 /**
@@ -209,7 +169,6 @@ function main() {
     fs.rmSync(path.join(DIST, entry), { recursive: true, force: true });
   }
   fs.writeFileSync(path.join(DIST, 'index.html'), out);
-  fs.writeFileSync(path.join(DIST, WA_PAGE), whatsappVariant(out));
   for (const entry of COPY) {
     const from = path.join(ROOT, entry);
     if (fs.existsSync(from)) copyInto(from, path.join(DIST, entry));
@@ -217,7 +176,6 @@ function main() {
 
   // --- assertions: these must fail the build, not be checked by hand -----------------
   const built = fs.readFileSync(path.join(DIST, 'index.html'), 'utf8');
-  const waBuilt = fs.readFileSync(path.join(DIST, WA_PAGE), 'utf8');
 
   // Derive the forbidden strings from the payload itself rather than hard-coding them: a
   // list of the founder names committed to the repo would leak exactly what this is meant
@@ -225,20 +183,16 @@ function main() {
   const payload = JSON.parse(fs.readFileSync(path.join(ROOT, 'assets/team.json'), 'utf8'));
   const people = JSON.parse(Buffer.from(payload.d, 'base64').toString('utf8'));
   const forbidden = people.flatMap((p) => [p.name, p.bio]);
-  for (const [file, html] of [['index.html', built], [WA_PAGE, waBuilt]]) {
-    for (const needle of forbidden) {
-      if (html.includes(needle)) {
-        throw new Error(`dist/${file} contains private founder detail - the shell leaked it`);
-      }
+  for (const needle of forbidden) {
+    if (built.includes(needle)) {
+      throw new Error('dist/index.html contains private founder detail - the shell leaked it');
     }
   }
 
-  const cards = [checkCard(built, 'index.html'), checkCard(waBuilt, WA_PAGE)];
+  const c = checkCard(built, 'index.html');
 
   console.log(`shell.html:      ${shell ? `${(shell.length / 1024).toFixed(0)} KB` : 'none (client-rendered)'}`);
-  for (const c of cards) {
-    console.log(`preview card:    ${c.file.padEnd(15)} -> ${c.name} (${c.width}x${c.height}, ${c.kb} KB)`);
-  }
+  console.log(`preview card:    ${c.name} (${c.width}x${c.height}, ${c.kb} KB)`);
   console.log(`forbidden:       ${forbidden.length} strings checked, none present`);
   console.log(`dist/index.html: ${(built.length / 1024).toFixed(0)} KB`);
 }

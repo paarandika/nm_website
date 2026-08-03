@@ -3,29 +3,7 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "cleanUrls": true,
-  "rewrites": [
-    {
-      "source": "/",
-      "has": [
-        {
-          "type": "header",
-          "key": "user-agent",
-          "value": ".*[Ww]hats[Aa]pp.*"
-        }
-      ],
-      "destination": "/index-wa"
-    }
-  ],
   "headers": [
-    {
-      "source": "/index-wa",
-      "headers": [
-        {
-          "key": "X-Robots-Tag",
-          "value": "noindex, nofollow"
-        }
-      ]
-    },
     {
       "source": "/assets/team.json",
       "headers": [
