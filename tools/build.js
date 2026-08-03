@@ -158,8 +158,28 @@ function main() {
     throw new Error(`og:image points at ${image[1]} but ${path.relative(DIST, card)} is not in dist/`);
   }
 
+  // Declared dimensions decide how a client frames the preview before the bytes arrive,
+  // so a stale pair crops the card wrongly on exactly the platforms this is for. Read the
+  // real size out of the PNG header (8-byte signature, then IHDR: length, type, then
+  // width and height as big-endian uint32) rather than trusting anyone to update both.
+  const png = fs.readFileSync(card);
+  if (png.length < 24 || png.toString('ascii', 12, 16) !== 'IHDR') {
+    throw new Error(`${path.relative(ROOT, card)} is not a PNG`);
+  }
+  const real = { width: png.readUInt32BE(16), height: png.readUInt32BE(20) };
+  for (const side of ['width', 'height']) {
+    const declared = new RegExp(`property="og:image:${side}" content="(\\d+)"`).exec(head);
+    if (!declared) throw new Error(`<head> has no og:image:${side}`);
+    if (+declared[1] !== real[side]) {
+      throw new Error(
+        `og:image:${side} says ${declared[1]} but the PNG is ${real[side]}px. ` +
+        'Update index.html to match the card.'
+      );
+    }
+  }
+
   console.log(`shell.html:      ${shell ? `${(shell.length / 1024).toFixed(0)} KB` : 'none (client-rendered)'}`);
-  console.log(`preview card:    ${(fs.statSync(card).size / 1024).toFixed(0)} KB at ${image[1]}`);
+  console.log(`preview card:    ${(fs.statSync(card).size / 1024).toFixed(0)} KB, ${real.width}x${real.height}`);
   console.log(`forbidden:       ${forbidden.length} strings checked, none present`);
   console.log(`dist/index.html: ${(built.length / 1024).toFixed(0)} KB`);
 }
